@@ -4,32 +4,63 @@ import axios from 'axios';
 
 const resolveSrv = util.promisify(dns.resolveSrv);
 
-export async function fetchRandomStation() {
+// export async function fetchRandomStation() {
     
-    const url = await fetchCurrentUrl();
+//     const url = await fetchCurrentUrl();
 
-    const response = await axios.get(
-        url,
+//     const response = await axios.get(
+//         url,
+//         {
+//             params: {
+//                 hidebroken: true,
+//                 limit: 100
+//             }
+//         }
+//     );
+
+//     const stations = response.data;
+
+//     const randomIndex = Math.floor(Math.random() * stations.length);
+
+//     return stations[randomIndex];
+// }
+
+export async function fetchRandomStation() {
+    const workingUrl = await get_radiobrowser_base_url_random();
+
+    // Get all countries
+    const countriesResponse = await axios.get(
+        `${workingUrl}/json/countries`
+    );
+
+    const countries = countriesResponse.data;
+
+    // Pick random country
+    const country =
+        countries[Math.floor(Math.random() * countries.length)];
+
+    // Get stations from that country
+    const stationsResponse = await axios.get(
+        `${workingUrl}/json/stations/bycountry/${encodeURIComponent(country.name)}`,
         {
             params: {
-                hidebroken: true,
-                limit: 100
+                hidebroken: true
             }
         }
     );
 
-    const stations = response.data;
+    const stations = stationsResponse.data;
 
-    const randomIndex = Math.floor(Math.random() * stations.length);
+    if (!stations.length) {
+        throw new Error("No stations found");
+    }
 
-    return stations[randomIndex];
+    // Pick random station
+    return stations[
+        Math.floor(Math.random() * stations.length)
+    ];
 }
 
-async function fetchCurrentUrl() {
-    const workingUrl = await get_radiobrowser_base_url_random();
-
-    return `${workingUrl}/json/stations`;
-}
 /**
  * Get a list of base urls of all available radio-browser servers
  * Returns: array of strings - base urls of radio-browser servers
