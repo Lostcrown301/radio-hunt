@@ -1,6 +1,7 @@
 import dns from 'dns';
 import util from 'util';
 import axios from 'axios';
+import fs from "fs/promises";
 
 const resolveSrv = util.promisify(dns.resolveSrv);
 
@@ -35,9 +36,22 @@ export async function fetchRandomStation() {
 
     const countries = countriesResponse.data;
 
+    /* Uncomment the code below to update the countries list */
+
+    // await fs.writeFile(
+    //     "./src/constants/countries.json",
+    //     JSON.stringify(countries, null, 2)
+    // );
+    // console.log("Countries saved to ./src/constants/countries.json");
+    // console.log("Countries:", countries);
+
+    /* Valid countries are those with at 50 stations, to ensure we have a good chance of finding a station */
+
+    const validCountries = countries.filter(country => country.stationcount >= 50);
+
     // Pick random country
     const country =
-        countries[Math.floor(Math.random() * countries.length)];
+        validCountries[Math.floor(Math.random() * validCountries.length)];
 
     // Get stations from that country
     const stationsResponse = await axios.get(
