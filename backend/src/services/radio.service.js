@@ -1,14 +1,34 @@
 import dns from 'dns';
 import util from 'util';
+import axios from 'axios';
+
 const resolveSrv = util.promisify(dns.resolveSrv);
 
+export async function fetchRandomStation() {
+    
+    const url = await fetchCurrentUrl();
 
+    const response = await axios.get(
+        url,
+        {
+            params: {
+                hidebroken: true,
+                limit: 100
+            }
+        }
+    );
 
-export function fetchRandomStation() {
-    return {
-        name: "Random Station",
-        url: "https://example.com/random"
-    };
+    const stations = response.data;
+
+    const randomIndex = Math.floor(Math.random() * stations.length);
+
+    return stations[randomIndex];
+}
+
+async function fetchCurrentUrl() {
+    const workingUrl = await get_radiobrowser_base_url_random();
+
+    return `${workingUrl}/json/stations`;
 }
 /**
  * Get a list of base urls of all available radio-browser servers
@@ -25,27 +45,10 @@ function get_radiobrowser_base_urls() {
  * Get a random available radio-browser server.
  * Returns: string - base url for radio-browser api
  */
-export function get_radiobrowser_base_url_random() {
+function get_radiobrowser_base_url_random() {
     return get_radiobrowser_base_urls().then(hosts => {
         var item = hosts[Math.floor(Math.random() * hosts.length)];
         console.log(item);
         return item;
     });
 }
-
-// get_radiobrowser_base_urls().then(hosts => {
-//     console.log("All available urls")
-//     console.log("------------------")
-//     for (let host of hosts) {
-//         console.log(host);
-//     }
-//     console.log();
-
-//     return get_radiobrowser_base_url_random();
-// }).then(random_host => {
-//     console.log("Random base url")
-//     console.log("------------------")
-//     console.log(random_host);
-// });
-
-// export { fetchRandomStation };
