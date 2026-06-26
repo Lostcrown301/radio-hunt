@@ -1,0 +1,108 @@
+.nebula-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Shared Styles */
+
+.nebula {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    mix-blend-mode: screen;
+    animation: float 25s ease-in-out infinite;
+}
+
+/* Purple */
+
+.nebula-1 {
+    width: 750px;
+    height: 750px;
+
+    top: -250px;
+    left: 40%;
+
+    background: radial-gradient(
+        circle,
+        rgba(140, 90, 255, 0.35) 0%,
+        rgba(140, 90, 255, 0.15) 50%,
+        transparent 100%
+    );
+}
+
+/* Blue */
+
+.nebula-2 {
+    width: 550px;
+    height: 550px;
+
+    right: -120px;
+    bottom: 120px;
+
+    animation-duration: 32s;
+
+    background: radial-gradient(
+        circle,
+        rgba(0, 170, 255, 0.25) 0%,
+        rgba(0, 170, 255, 0.10) 50%,
+        transparent 100%
+    );
+}
+
+/* Cyan */
+
+.nebula-3 {
+    width: 450px;
+    height: 450px;
+
+    left: -100px;
+    bottom: -80px;
+
+    animation-duration: 28s;
+
+    background: radial-gradient(
+        circle,
+        rgba(0, 255, 220, 0.18) 0%,
+        rgba(0, 255, 220, 0.08) 50%,
+        transparent 100%
+    );
+}
+
+/* Small Purple */
+
+.nebula-4 {
+    width: 350px;
+    height: 350px;
+
+    top: 250px;
+    right: 20%;
+
+    animation-duration: 18s;
+
+    background: radial-gradient(
+        circle,
+        rgba(180, 100, 255, 0.18) 0%,
+        rgba(180, 100, 255, 0.08) 50%,
+        transparent 100%
+    );
+}
+
+/* Floating Animation */
+
+@keyframes float {
+
+    0% {
+        transform: translate(0px, 0px) scale(1);
+    }
+
+    50% {
+        transform: translate(30px, -20px) scale(1.05);
+    }
+
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
+
+}

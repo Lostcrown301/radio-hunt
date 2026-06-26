@@ -1,6 +1,9 @@
 import { fetchRandomStation } from "../services/radio.service.js";
 
 export const getRandomStation = async (req, res) => {
+    
+    console.log("Random endpoint hit");
+    
     try {
         // const station = await fetchRandomStation();
         // res.json(station);

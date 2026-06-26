@@ -1,6 +1,6 @@
 # Radio Hunt - Development Roadmap
 
-## Phase 1: Project Setup
+## Phase 1: Project Setup (Done)
 
 ### Frontend
 
@@ -22,7 +22,7 @@ Goal:
 
 ---
 
-## Phase 2: Radio Station Integration
+## Phase 2: Radio Station Integration (In progress)
 
 ### Backend
 

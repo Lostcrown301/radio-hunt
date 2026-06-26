@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { fetchRandomStation } from "../services/radioService";
+import Background from "../components/background/Background";
 
 export default function GamePage() {
 
@@ -16,7 +17,11 @@ export default function GamePage() {
     loadStation();
   }, []);
 
-  return (
-    <h1>Radio Hunt</h1>
+    return (
+    <>
+      <Background />
+
+      <h1>Radio Hunt</h1>
+    </>
   );
 }

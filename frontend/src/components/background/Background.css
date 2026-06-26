@@ -1,0 +1,47 @@
+.background {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: -100;
+
+    /* background:
+        radial-gradient(circle at top,
+        #1d3a66 0%,
+        #0d1633 30%,
+        #050816 70%,
+        #01030a 100%); */
+    background:
+        radial-gradient(
+            circle at center,
+            #243d73 0%,
+            #13254c 25%,
+            #091328 55%,
+            #02040d 100%
+        );
+}
+
+/* .stars {
+    position: absolute;
+    inset: 0;
+}
+
+.earth {
+    position: absolute;
+
+    width: 1000px;
+    height: 1000px;
+
+    right: -250px;
+    bottom: -250px;
+
+    border-radius: 50%;
+
+    opacity: .2;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0,0,0,.35);
+} */
