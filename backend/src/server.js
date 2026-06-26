@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import gameRoutes from "./routes/game.routes.js";
+import { cleanupGames } from "./utils/gameStore.js";
 
 const app = express();
 
@@ -17,6 +18,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/games", gameRoutes);
+
+
+setInterval(() => {
+    cleanupGames();
+}, 5 * 60 * 1000); // Every 5 minutes
 
 const PORT = process.env.PORT || 5000;
 

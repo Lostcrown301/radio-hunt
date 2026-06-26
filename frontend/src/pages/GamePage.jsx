@@ -8,7 +8,7 @@ export default function GamePage() {
     async function loadStation() {
       try {
         const data = await fetchRandomStation();
-        // console.log(data);
+        console.log(data);
       } catch (error) {
         console.error(error);
       }
