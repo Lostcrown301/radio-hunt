@@ -6,7 +6,7 @@ const app = express();
 
 app.use(cors({
     origin: ["http://localhost:5173",
-        "https://radio-hunt.onrender.com"]
+        "https://radio-hunt-tau.vercel.app"]
 }));
 app.use(express.json());
 
