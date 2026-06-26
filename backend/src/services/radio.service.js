@@ -5,27 +5,6 @@ import fs from "fs/promises";
 
 const resolveSrv = util.promisify(dns.resolveSrv);
 
-// export async function fetchRandomStation() {
-    
-//     const url = await fetchCurrentUrl();
-
-//     const response = await axios.get(
-//         url,
-//         {
-//             params: {
-//                 hidebroken: true,
-//                 limit: 100
-//             }
-//         }
-//     );
-
-//     const stations = response.data;
-
-//     const randomIndex = Math.floor(Math.random() * stations.length);
-
-//     return stations[randomIndex];
-// }
-
 export async function fetchRandomStation() {
     const workingUrl = await get_radiobrowser_base_url_random();
 
@@ -93,7 +72,7 @@ function get_radiobrowser_base_urls() {
 function get_radiobrowser_base_url_random() {
     return get_radiobrowser_base_urls().then(hosts => {
         var item = hosts[Math.floor(Math.random() * hosts.length)];
-        console.log(item);
+        // console.log(item);
         return item;
     });
 }
