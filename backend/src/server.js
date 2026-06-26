@@ -4,7 +4,10 @@ import gameRoutes from "./routes/game.routes.js";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:5173",
+        "https://radio-hunt.onrender.com"]
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
