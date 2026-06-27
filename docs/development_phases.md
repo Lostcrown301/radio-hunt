@@ -60,10 +60,10 @@ Frontend successfully communicates with the backend.
 
 ## Backend
 
-* Improve random station selection
+* Improve random station selection (Done)
 * Filter inactive/broken stations
 * Prevent recently played stations
-* Return cleaner station metadata
+* Return cleaner station metadata (Done)
 
 Example Response
 

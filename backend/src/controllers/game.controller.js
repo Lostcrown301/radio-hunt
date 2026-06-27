@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { fetchRandomStation } from "../services/radio.service.js";
 import { createGame, getGame, deleteGame } from "../utils/gameStore.js";
+import { createOptions } from "../utils/createOptions.js"
 
 export const getRandomStation = async (req, res) => {
     
@@ -10,6 +11,8 @@ export const getRandomStation = async (req, res) => {
         const stationData = await fetchRandomStation();
         // res.json(stationData);
         const gameId = crypto.randomUUID();
+
+        const options = createOptions(stationData.country);
 
         createGame(gameId, {
             country: stationData.country,
@@ -26,7 +29,8 @@ export const getRandomStation = async (req, res) => {
         res.json({
             gameId: gameId,
             streamUrl: stationData.url_resolved,
-            stationName: stationData.name
+            stationName: stationData.name,
+            options: options
         })
         
     }
@@ -41,11 +45,17 @@ export const checkGuess = async (req, res) => {
 
         const {gameId, country} = req.body;
 
-        const game = getGame(gameId);
-
         if (!gameId || !country) {
             return res.status(400).json({
                 message: "gameId and country are required"
+            });
+        }
+
+        const game = getGame(gameId);
+
+        if (!game) {
+            return res.status(404).json({
+                message: "Game not found"
             });
         }
 
