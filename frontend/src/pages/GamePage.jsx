@@ -13,6 +13,8 @@ export default function GamePage() {
 
   async function loadStation() {
     try {
+
+      // console.log("loadStation called");
       const data = await fetchRandomStation();
       // console.log(data);
       setGame(data);
@@ -26,7 +28,9 @@ export default function GamePage() {
 
 
   useEffect(() => {
-      loadStation();
+
+    // console.log("useEffect ran");
+    loadStation();
   }, []);
 
   async function handleSubmit() {
@@ -54,23 +58,23 @@ export default function GamePage() {
     <>
       <Background />
 
-
-
-      <button onClick={handleSubmit}
-        disabled={!selectedCountry || result}
-      >
-
-        Check guess
-      </button>
-
       <h1>Radio Hunt</h1>
       <h2>Score: {score}</h2>
 
-      {game && (
+      {/* {game && (
         <audio controls autoPlay>
           <source src={game.streamUrl} />
           Your browser does not support the audio element.
         </audio>
+      )} */}
+
+      {game && (
+        <audio
+          key={game.gameId}
+          src={game.streamUrl}
+          controls
+          autoPlay
+        />
       )}
 
       {game && (
@@ -92,6 +96,10 @@ export default function GamePage() {
       )}
 
       <p>Selected Country: {selectedCountry}</p>
+
+      <button onClick={handleSubmit} disabled={!selectedCountry || result}>
+        Check guess
+      </button>
 
       {result && (
         <div>
