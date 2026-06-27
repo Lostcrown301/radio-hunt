@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchRandomStation, submitGuess } from "../services/radioService";
 import Background from "../components/background/Background";
+// import WorldMap from "../components/map/WorldMap";
 
 export default function GamePage() {
 

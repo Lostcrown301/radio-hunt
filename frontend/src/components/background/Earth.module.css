@@ -1,0 +1,42 @@
+.container {
+  position: fixed;
+
+  inset: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  pointer-events: none;
+
+  z-index: -1;
+
+  overflow: hidden;
+}
+
+.container canvas {
+  width: 1700px !important;
+  height: 1700px !important;
+
+  margin-top: -700px;
+}
+
+/* .earth-container {
+
+    position: absolute;
+
+    width: 1000px;
+    height: 1000px;
+
+    right: -250px;
+    bottom: -250px;
+
+    left: 50%;
+    top: 5%;
+    transform: translateX(-50%);
+
+    opacity: .25;
+
+    pointer-events: none;
+
+} */

@@ -1,15 +1,55 @@
-.background {
+.background{
+
+    position:fixed;
+
+    inset:0;
+
+    overflow:hidden;
+
+    pointer-events:none;
+
+    z-index:-100;
+
+    background:
+    radial-gradient(
+        circle at center,
+        #1d3268 0%,
+        #091328 45%,
+        #05060d 80%,
+        #02030a 100%
+    );
+
+}
+
+.overlay{
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+    linear-gradient(
+        to bottom,
+        rgba(0,0,0,.10),
+        rgba(0,0,0,.30)
+    );
+
+    backdrop-filter:blur(.5px);
+
+}
+
+/* .background {
     position: fixed;
     inset: 0;
     overflow: hidden;
     z-index: -100;
 
-    /* background:
+    background:
         radial-gradient(circle at top,
         #1d3a66 0%,
         #0d1633 30%,
         #050816 70%,
-        #01030a 100%); */
+        #01030a 100%);
     background:
         radial-gradient(
             circle at center,
@@ -18,7 +58,7 @@
             #091328 55%,
             #02040d 100%
         );
-}
+} */
 
 /* .stars {
     position: absolute;
