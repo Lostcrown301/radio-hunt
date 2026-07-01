@@ -92,3 +92,48 @@
   background: rgba(255,255,255,0.07);
   transform: scale(1.02);
 }
+
+/* ════════════════════ Responsive ════════════════════ */
+
+/* Tablet: slightly tighter */
+@media (max-width: 1023px) {
+  .bar        { gap: 8px; }
+  .selectWrap { min-width: 160px; }
+  .submit     { padding: 11px 20px; font-size: 14px; }
+  .skip       { padding: 11px 16px; font-size: 14px; }
+}
+
+@media (max-width: 767px) {
+  .bar        { gap: 6px; flex-wrap: nowrap; }
+  .selectWrap { min-width: 130px; flex-shrink: 1; }
+  .submit     { padding: 10px 16px; font-size: 13px; gap: 6px; }
+  .skip       { padding: 10px 12px; font-size: 13px; }
+  .selectValue { font-size: 14px; }
+}
+
+/* Phone portrait — full-width stacked */
+@media (max-width: 575px) and (orientation: portrait) {
+  .bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .selectWrap { min-width: unset; width: 100%; }
+  .selectBox  { padding: 12px 14px; }
+  .selectValue { font-size: 15px; }
+
+  .submit {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: clamp(14px, 4vw, 16px);
+  }
+
+  .skip {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: clamp(13px, 3.5vw, 15px);
+  }
+}

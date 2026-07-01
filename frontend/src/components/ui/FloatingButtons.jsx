@@ -1,4 +1,4 @@
-import { LuSettings, LuVolume2, LuMaximize2, LuRefreshCw } from "react-icons/lu";
+import { LuSettings, LuVolume2, LuMaximize2, LuRefreshCw, LuPanelLeft, LuPanelRight } from "react-icons/lu";
 import styles from "./FloatingButtons.module.css";
 
 function IconBtn({ icon, label, onClick }) {
@@ -9,12 +9,27 @@ function IconBtn({ icon, label, onClick }) {
   );
 }
 
-export function FloatingLeft() {
+export function FloatingLeft({ onHints, onStats }) {
   return (
     <div className={styles.left}>
-      <IconBtn icon={<LuSettings size={17} />}   label="Settings"   />
-      <IconBtn icon={<LuVolume2  size={17} />}   label="Volume"     />
-      <IconBtn icon={<LuMaximize2 size={17} />}  label="Fullscreen" />
+      <IconBtn icon={<LuSettings  size={17} />} label="Settings"   />
+      <IconBtn icon={<LuVolume2   size={17} />} label="Volume"     />
+      <IconBtn icon={<LuMaximize2 size={17} />} label="Fullscreen" />
+      {/* Drawer triggers — visible only on tablet/phone via CSS */}
+      {onHints && (
+        <IconBtn
+          icon={<LuPanelLeft  size={17} />}
+          label="Open Hints"
+          onClick={onHints}
+        />
+      )}
+      {onStats && (
+        <IconBtn
+          icon={<LuPanelRight size={17} />}
+          label="Open Stats"
+          onClick={onStats}
+        />
+      )}
     </div>
   );
 }

@@ -1,21 +1,41 @@
 import styles from "./GameLayout.module.css";
 
 /**
- * Root layout shell — positions the five named zones:
- * header, left, center, right, bottom
+ * Root layout shell.
+ *
+ * Desktop/tablet:  header | [left | center | right] | bottom
+ * Phone portrait:  header | center | phoneContent (scrollable)
  */
-export default function GameLayout({ header, left, center, right, bottom }) {
+export default function GameLayout({
+  header,
+  left,
+  center,
+  right,
+  bottom,
+  phoneContent,
+}) {
   return (
     <div className={styles.shell}>
       <header className={styles.header}>{header}</header>
 
       <div className={styles.body}>
+        {/* ── Permanent sidebars (desktop/tablet) ── */}
         <aside className={styles.left}>{left}</aside>
-        <main  className={styles.center}>{center}</main>
+
+        {/* ── Center always visible ── */}
+        <main className={styles.center}>{center}</main>
+
+        {/* ── Right sidebar ── */}
         <aside className={styles.right}>{right}</aside>
       </div>
 
+      {/* ── Bottom bar (desktop/tablet) ── */}
       <div className={styles.bottom}>{bottom}</div>
+
+      {/* ── Phone portrait extra content (scrolls below map) ── */}
+      {phoneContent && (
+        <div className={styles.phoneExtra}>{phoneContent}</div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,45 @@
+/* ── Desktop bottom row ── */
 .bottomRow {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .bottomRow {
+    gap: 8px;
+  }
+}
+
+/* ════════════════════════════
+   Phone Portrait Scroll Layout
+   ════════════════════════════ */
+@media (max-width: 575px) and (orientation: portrait) {
+  .bottomRow {
+    display: none; /* replaced by phoneScroll */
+  }
+}
+
+/* Phone scroll container */
+.phoneScroll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0 0;
+}
+
+/* Timer + Streak + Score — 3 equal columns */
+.phoneStatsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* FABs row at bottom */
+.phoneFabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 4px;
 }

@@ -1,24 +1,53 @@
-import Background          from "../components/background/Background";
-import GameLayout          from "../components/layout/GameLayout";
-import Header              from "../components/layout/Header";
-import HintsCard           from "../components/game/HintsCard";
-import PreviousGuesses     from "../components/game/PreviousGuesses";
-import RadioPlayer         from "../components/player/RadioPlayer";
-import WorldMap            from "../components/map/WorldMap";
-import TimerCard           from "../components/game/TimerCard";
-import StreakCard          from "../components/game/StreakCard";
-import ScoreCard           from "../components/game/ScoreCard";
-import BottomBar           from "../components/game/BottomBar";
+import { useState, useCallback } from "react";
+import Background              from "../components/background/Background";
+import GameLayout              from "../components/layout/GameLayout";
+import Header                  from "../components/layout/Header";
+import HintsCard               from "../components/game/HintsCard";
+import PreviousGuesses         from "../components/game/PreviousGuesses";
+import RadioPlayer             from "../components/player/RadioPlayer";
+import WorldMap                from "../components/map/WorldMap";
+import TimerCard               from "../components/game/TimerCard";
+import StreakCard              from "../components/game/StreakCard";
+import ScoreCard               from "../components/game/ScoreCard";
+import BottomBar               from "../components/game/BottomBar";
 import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
+import Drawer                  from "../components/ui/Drawer";
 import styles from "./GamePage.module.css";
 
 export default function GamePage() {
+  const [hintsOpen,  setHintsOpen]  = useState(false);
+  const [statsOpen,  setStatsOpen]  = useState(false);
+
+  const openHints = useCallback(() => setHintsOpen(true),  []);
+  const openStats = useCallback(() => setStatsOpen(true),  []);
+
   return (
     <>
-      {/* Fixed space background */}
       <Background />
 
-      {/* Main layout */}
+      {/* ── Sidebar drawers (tablet / phone) ── */}
+      <Drawer
+        open={hintsOpen}
+        onClose={() => setHintsOpen(false)}
+        side="left"
+        title="Hints & Guesses"
+      >
+        <HintsCard />
+        <PreviousGuesses />
+      </Drawer>
+
+      <Drawer
+        open={statsOpen}
+        onClose={() => setStatsOpen(false)}
+        side="right"
+        title="Stats"
+      >
+        <TimerCard timeLeft="00:45" />
+        <StreakCard streak={7} />
+        <ScoreCard score={2450} />
+      </Drawer>
+
+      {/* ── Main layout ── */}
       <GameLayout
         header={<Header streak={7} score={2450} />}
 
@@ -46,9 +75,38 @@ export default function GamePage() {
 
         bottom={
           <div className={styles.bottomRow}>
-            <FloatingLeft />
+            <FloatingLeft
+              onHints={openHints}
+              onStats={openStats}
+            />
             <BottomBar selectedCountry="Algeria" />
             <FloatingRight />
+          </div>
+        }
+
+        phoneContent={
+          <div className={styles.phoneScroll}>
+            {/* Timer + Streak + Score row */}
+            <div className={styles.phoneStatsRow}>
+              <TimerCard timeLeft="00:45" />
+              <StreakCard streak={7} />
+              <ScoreCard score={2450} />
+            </div>
+
+            {/* Hints */}
+            <HintsCard />
+
+            {/* Previous Guesses */}
+            <PreviousGuesses />
+
+            {/* Bottom actions */}
+            <BottomBar selectedCountry="Algeria" />
+
+            {/* Floating controls row */}
+            <div className={styles.phoneFabs}>
+              <FloatingLeft />
+              <FloatingRight />
+            </div>
           </div>
         }
       />

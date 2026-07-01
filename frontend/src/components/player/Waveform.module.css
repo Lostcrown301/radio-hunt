@@ -24,3 +24,13 @@
   from { transform: scaleY(0.25); }
   to   { transform: scaleY(1); }
 }
+
+/* ════════════════════ Responsive ════════════════════ */
+@media (max-width: 767px) {
+  .wrap { height: 42px; gap: 2px; }
+}
+
+@media (max-width: 575px) and (orientation: portrait) {
+  .wrap { height: 36px; gap: 1.5px; }
+  .bar  { max-width: 3px; }
+}

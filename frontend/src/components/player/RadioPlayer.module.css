@@ -111,3 +111,24 @@
   background: var(--c-purple-3);
   box-shadow: 0 0 6px var(--c-purple-2);
 }
+
+/* ════════════════════ Responsive ════════════════════ */
+
+/* Tablet landscape — slightly tighter */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .card    { padding: 10px 14px; gap: 12px; }
+  .iconRing { width: 56px; height: 56px; }
+}
+
+/* Phone landscape / tablet portrait */
+@media (max-width: 767px) {
+  .card    { padding: 10px 12px; gap: 10px; }
+  .iconRing { width: 50px; height: 50px; }
+}
+
+/* Phone portrait */
+@media (max-width: 575px) and (orientation: portrait) {
+  .card    { padding: 10px 12px; gap: 10px; }
+  .iconRing { width: 46px; height: 46px; }
+  .nowPlaying { font-size: 10px; }
+}

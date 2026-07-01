@@ -24,3 +24,14 @@
   color: var(--c-yellow);
   line-height: 1.1;
 }
+
+/* ════════════════════ Responsive ════════════════════ */
+@media (max-width: 1023px) {
+  .card  { padding: 12px 12px 10px; }
+  .value { font-size: 30px; }
+}
+
+@media (max-width: 575px) and (orientation: portrait) {
+  .card  { padding: 10px 10px 8px; }
+  .value { font-size: 26px; }
+}

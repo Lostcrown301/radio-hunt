@@ -1,3 +1,14 @@
+/* ════════════════════════════════════════════
+   GameLayout — Responsive Shell
+   ≥1280px  : Desktop  — 3-col, fixed height
+   1024–1279: Laptop   — 3-col compact
+   768–1023 : Tablet L — 3-col tighter
+   ≤767px   : Tablet P — 1-col + drawers
+   ≤767 land: Phone L  — compact 1-col
+   ≤575 port: Phone P  — full scroll
+   ════════════════════════════════════════════ */
+
+/* ── BASE (Desktop ≥1280) ── */
 .shell {
   position: relative;
   z-index: 1;
@@ -11,12 +22,11 @@
   overflow: hidden;
 }
 
-/* ── Body row: left | center | right ── */
 .body {
   display: grid;
   grid-template-columns: 190px 1fr 190px;
   gap: 10px;
-  min-height: 0; /* allow children to shrink */
+  min-height: 0;
 }
 
 .header { z-index: 10; }
@@ -25,17 +35,71 @@
 .right  { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .bottom { z-index: 10; }
 
-/* ── 1280px ── */
-@media (max-width: 1280px) {
-  .body { grid-template-columns: 176px 1fr 176px; }
+/* phone extra section hidden on desktop */
+.phoneExtra { display: none; }
+
+/* ── LAPTOP 1024–1279 ── */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .shell { padding: 8px 10px 8px; gap: 8px; }
+  .body  { grid-template-columns: 162px 1fr 162px; gap: 8px; }
 }
 
-/* ── Tablet / collapse sidebars ── */
-@media (max-width: 1023px) {
-  .body { grid-template-columns: 1fr; }
+/* ── TABLET LANDSCAPE 768–1023 ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .shell { padding: 8px 8px 6px; gap: 6px; }
+  .body  { grid-template-columns: 150px 1fr 155px; gap: 6px; }
+}
 
+/* ── TABLET PORTRAIT / PHONE LANDSCAPE ≤767 ── */
+@media (max-width: 767px) {
+  .shell {
+    padding: 8px 10px 8px;
+    gap: 8px;
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .body {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  /* Sidebars hidden — accessible via drawer buttons */
   .left,
-  .right {
-    display: none; /* replaced by drawers — added in responsive layer */
+  .right { display: none; }
+}
+
+/* ── PHONE LANDSCAPE (short viewport) ── */
+@media (max-width: 767px) and (orientation: landscape) {
+  .shell { padding: 5px 8px 5px; gap: 5px; }
+}
+
+/* ── PHONE PORTRAIT ≤575 ── */
+@media (max-width: 575px) and (orientation: portrait) {
+  .shell {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 0;
+    gap: 0;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .header { margin-bottom: 8px; }
+  .center { gap: 8px; flex-shrink: 0; }
+  .bottom { display: none; } /* replaced by inline phone content */
+
+  /* Show phone-only content */
+  .phoneExtra {
+    display: block;
+    padding-bottom: 20px;
   }
 }

@@ -59,3 +59,20 @@
 
 .blue  { color: var(--c-blue); }
 .green { color: var(--c-green); }
+
+/* ════════════════════ Responsive ════════════════════ */
+@media (max-width: 1023px) {
+  .card    { padding: 12px 12px 10px; }
+  .list    { gap: 8px; }
+}
+
+/* Phone portrait — horizontal 2-col layout */
+@media (max-width: 575px) and (orientation: portrait) {
+  .list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .card { padding: 12px; }
+}

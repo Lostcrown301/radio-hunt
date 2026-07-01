@@ -41,11 +41,11 @@
   --r-btn:  10px;
 }
 
-html, body {
+html {
   height: 100%;
-  overflow: hidden;
 }
 
+/* Desktop: fixed viewport, no scroll */
 body {
   font-family: var(--font-ui);
   font-size: 14px;
@@ -54,6 +54,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color-scheme: dark;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Phone portrait: let it scroll */
+@media (max-width: 575px) and (orientation: portrait) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+  }
 }
 
 #root {
@@ -64,7 +75,14 @@ body {
   position: relative;
 }
 
-/* ── Scrollbars (custom thin purple) ── */
+@media (max-width: 575px) and (orientation: portrait) {
+  #root {
+    overflow: visible;
+    height: auto;
+  }
+}
+
+/* ── Scrollbars ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--c-purple); border-radius: 4px; }
@@ -75,5 +93,4 @@ body {
   outline-offset: 2px;
 }
 
-/* ── Links ── */
 a { color: inherit; text-decoration: none; }

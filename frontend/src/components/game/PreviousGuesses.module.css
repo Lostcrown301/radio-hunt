@@ -76,3 +76,32 @@
   color: var(--c-muted);
   margin-left: auto;
 }
+
+/* ════════════════════ Responsive ════════════════════ */
+@media (max-width: 1023px) {
+  .card { padding: 12px 12px 10px; }
+}
+
+/* Phone portrait — horizontal scrolling list */
+@media (max-width: 575px) and (orientation: portrait) {
+  .card { flex: none; padding: 12px; }
+
+  .list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-y: visible;
+    gap: 6px;
+  }
+
+  .item {
+    flex: none;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 6px 10px;
+    gap: 7px;
+  }
+
+  .name { font-size: 13px; }
+  .flag { font-size: 16px; }
+}
