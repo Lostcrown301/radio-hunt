@@ -1,64 +1,42 @@
 import { useMemo } from "react";
-import "./Stars.css";
+import styles from "./Stars.module.css";
+
+const STAR_COUNT = 320;
 
 export default function Stars() {
+  const stars = useMemo(() => {
+    return Array.from({ length: STAR_COUNT }, (_, i) => {
+      const r = Math.random();
+      const size = r < 0.72 ? 1 : r < 0.93 ? 1.5 : 2;
+      return {
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size,
+        opacity: 0.25 + Math.random() * 0.65,
+        dur: 2.5 + Math.random() * 4.5,
+        del: Math.random() * 7,
+      };
+    });
+  }, []);
 
-    const stars = useMemo(() => {
-        return Array.from({ length: 200 }, (_, i) => {
-
-            const random = Math.random();
-            const opacityRandom = Math.random();
-
-            let size;
-            let opacity;
-
-            if (opacityRandom < 0.7) {
-                opacity = 0.3;
-            } else if (opacityRandom < 0.95) {
-                opacity = 0.6;
-            } else {
-                opacity = 1;
-            }
-
-            if (random < 0.80) {
-                size = 1;
-            }
-            else if (random < 0.95) {
-                size = 2;
-            }
-            else {
-                    size = 3 + Math.random();
-            }
-
-            return {
-                id: i,
-                x: Math.random() * 100,
-                y: Math.random() * 100,
-                size,
-                opacity: Math.random() * 0.6 + 0.2,
-                duration: Math.random() * 4 + 2,
-                delay: Math.random() * 5,
-            };
-        });
-    }, []);
-
-    return (
-        <div className="stars-container">
-            {stars.map((star) => (
-                <span
-                    key={star.id}
-                    className="star"
-                    style={{
-                        left: `${star.x}%`,
-                        top: `${star.y}%`,
-                        width: `${star.size}px`,
-                        height: `${star.size}px`,
-                        opacity: star.opacity,
-                        animationDuration: `${star.duration}s`,
-                        animationDelay: `${star.delay}s`,
-                    }}
-                />
-            ))}
-        </div>
-    );
+  return (
+    <div className={styles.wrap} aria-hidden="true">
+      {stars.map((s) => (
+        <span
+          key={s.id}
+          className={styles.star}
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            opacity: s.opacity,
+            animationDuration: `${s.dur}s`,
+            animationDelay: `${s.del}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
 }

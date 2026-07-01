@@ -1,0 +1,78 @@
+.card {
+  padding: 14px 14px 12px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.headingText {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.flag {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+}
+
+.xIcon {
+  color: var(--c-red);
+  flex-shrink: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+
+.footerCount {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.footerLabel {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin-left: auto;
+}

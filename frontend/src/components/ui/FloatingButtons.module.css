@@ -1,0 +1,56 @@
+/* ── Bottom-left cluster ── */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.11);
+  color: var(--c-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+
+.btn:hover {
+  background: rgba(139,92,246,0.18);
+  color: var(--c-purple-3);
+  transform: scale(1.08);
+}
+
+/* ── Bottom-right new station ── */
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.newStation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.newStation:hover {
+  background: rgba(139,92,246,0.20);
+  color: var(--c-purple-3);
+  transform: scale(1.03);
+}

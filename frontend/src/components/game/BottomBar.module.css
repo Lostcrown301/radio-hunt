@@ -1,0 +1,94 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* ── Selected Country ── */
+.selectWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 220px;
+}
+
+.selectLabel {
+  font-size: 10px;
+  color: var(--c-muted);
+  letter-spacing: 0.06em;
+  padding-left: 4px;
+}
+
+.selectBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-btn);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.selectBox:hover {
+  border-color: var(--c-purple);
+}
+
+.selectValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-green);
+}
+
+/* ── Submit ── */
+.submit {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 28px;
+  border-radius: var(--r-btn);
+  background: linear-gradient(135deg, var(--c-purple) 0%, var(--c-purple-2) 100%);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(139,92,246,0.45);
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: none;
+  white-space: nowrap;
+}
+
+.submit:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 28px rgba(168,85,247,0.55);
+}
+
+.submit:active {
+  transform: scale(0.98);
+}
+
+/* ── Skip ── */
+.skip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 22px;
+  border-radius: var(--r-btn);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.18);
+  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.skip:hover {
+  background: rgba(255,255,255,0.07);
+  transform: scale(1.02);
+}

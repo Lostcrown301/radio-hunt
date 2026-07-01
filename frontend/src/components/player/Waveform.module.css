@@ -1,0 +1,26 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 54px;
+  overflow: hidden;
+}
+
+.bar {
+  flex: 1;
+  min-width: 2px;
+  max-width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    var(--c-purple-3) 0%,
+    var(--c-purple)   60%,
+    rgba(139,92,246,0.3) 100%
+  );
+  animation: wave ease-in-out infinite alternate;
+}
+
+@keyframes wave {
+  from { transform: scaleY(0.25); }
+  to   { transform: scaleY(1); }
+}

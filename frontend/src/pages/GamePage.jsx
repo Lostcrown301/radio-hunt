@@ -1,126 +1,57 @@
-import { useEffect, useState } from "react";
-import { fetchRandomStation, submitGuess } from "../services/radioService";
-import Background from "../components/background/Background";
-// import WorldMap from "../components/map/WorldMap";
+import Background          from "../components/background/Background";
+import GameLayout          from "../components/layout/GameLayout";
+import Header              from "../components/layout/Header";
+import HintsCard           from "../components/game/HintsCard";
+import PreviousGuesses     from "../components/game/PreviousGuesses";
+import RadioPlayer         from "../components/player/RadioPlayer";
+import WorldMap            from "../components/map/WorldMap";
+import TimerCard           from "../components/game/TimerCard";
+import StreakCard          from "../components/game/StreakCard";
+import ScoreCard           from "../components/game/ScoreCard";
+import BottomBar           from "../components/game/BottomBar";
+import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
+import styles from "./GamePage.module.css";
 
 export default function GamePage() {
-
-  const [game, setGame] = useState(null);
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [result, setResult] = useState(null);
-
-  // Score system
-  const [score, setScore] = useState(0);
-
-  async function loadStation() {
-    try {
-
-      // console.log("loadStation called");
-      const data = await fetchRandomStation();
-      // console.log(data);
-      setGame(data);
-      setSelectedCountry("");
-      setResult(null);
-
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-
-  useEffect(() => {
-
-    // console.log("useEffect ran");
-    loadStation();
-  }, []);
-
-  async function handleSubmit() {
-      if (!game) return;
-
-      try {
-          const guess = await submitGuess(
-              game.gameId,
-              selectedCountry
-          );
-
-          // console.log(guess);
-          setResult(guess);
-
-          if (guess.correct) {
-              setScore((prev) => prev + 1);
-          }
-
-      } catch (error) {
-          console.error(error);
-      }
-  }
-
-    return (
+  return (
     <>
+      {/* Fixed space background */}
       <Background />
 
-      <h1>Radio Hunt</h1>
-      <h2>Score: {score}</h2>
+      {/* Main layout */}
+      <GameLayout
+        header={<Header streak={7} score={2450} />}
 
-      {/* {game && (
-        <audio controls autoPlay>
-          <source src={game.streamUrl} />
-          Your browser does not support the audio element.
-        </audio>
-      )} */}
+        left={
+          <>
+            <HintsCard />
+            <PreviousGuesses />
+          </>
+        }
 
-      {game && (
-        <audio
-          key={game.gameId}
-          src={game.streamUrl}
-          controls
-          autoPlay
-        />
-      )}
+        center={
+          <>
+            <RadioPlayer />
+            <WorldMap />
+          </>
+        }
 
-      {game && (
-        <div>
-          {game.options.map((country) => (
-            <button
-              key={country}
-              disabled={result}
-              onClick={() => setSelectedCountry(country)}
-              style={{
-                  backgroundColor:
-                      selectedCountry === country ? "#4CAF50" : ""
-              }}
-            >
-              {country}
-            </button>
-          ))}
-        </div>
-      )}
+        right={
+          <>
+            <TimerCard timeLeft="00:45" />
+            <StreakCard streak={7} />
+            <ScoreCard score={2450} />
+          </>
+        }
 
-      <p>Selected Country: {selectedCountry}</p>
-
-      <button onClick={handleSubmit} disabled={!selectedCountry || result}>
-        Check guess
-      </button>
-
-      {result && (
-        <div>
-          <h2>
-            {result.correct ? "✅ Correct!" : "❌ Wrong!"}
-          </h2>
-
-          <p>
-            Correct Country: {result.correctCountry}
-          </p>
-        </div>
-      )}
-
-    {result && (
-        <button onClick={loadStation}>
-            Next Round
-        </button>
-    )}
-    
+        bottom={
+          <div className={styles.bottomRow}>
+            <FloatingLeft />
+            <BottomBar selectedCountry="Algeria" />
+            <FloatingRight />
+          </div>
+        }
+      />
     </>
-
   );
 }

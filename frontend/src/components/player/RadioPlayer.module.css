@@ -1,0 +1,113 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  flex-shrink: 0;
+}
+
+/* ── Circular radio icon ── */
+.iconWrap {
+  flex-shrink: 0;
+}
+
+.iconRing {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 2.5px solid var(--c-purple);
+  background: rgba(139, 92, 246, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.35);
+}
+
+/* ── Right content ── */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nowPlaying {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+}
+
+.live {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-red);
+  letter-spacing: 0.08em;
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-red);
+  box-shadow: 0 0 6px var(--c-red);
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Progress ── */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--c-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.12);
+  position: relative;
+  overflow: visible;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--c-purple) 0%, var(--c-purple-2) 100%);
+  position: relative;
+}
+
+.thumb {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--c-purple-3);
+  box-shadow: 0 0 6px var(--c-purple-2);
+}

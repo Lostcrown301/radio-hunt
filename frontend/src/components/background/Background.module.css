@@ -1,87 +1,10 @@
-.background{
-
-    position:fixed;
-
-    inset:0;
-
-    overflow:hidden;
-
-    pointer-events:none;
-
-    z-index:-100;
-
-    background:
-    radial-gradient(
-        circle at center,
-        #1d3268 0%,
-        #091328 45%,
-        #05060d 80%,
-        #02030a 100%
-    );
-
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    /* Deep space — pure black at center, edges slightly tinted */
+    radial-gradient(ellipse 120% 80% at 50% 50%, #08091a 0%, #05060d 60%, #02030a 100%);
 }
-
-.overlay{
-
-    position:absolute;
-
-    inset:0;
-
-    background:
-    linear-gradient(
-        to bottom,
-        rgba(0,0,0,.10),
-        rgba(0,0,0,.30)
-    );
-
-    backdrop-filter:blur(.5px);
-
-}
-
-/* .background {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    z-index: -100;
-
-    background:
-        radial-gradient(circle at top,
-        #1d3a66 0%,
-        #0d1633 30%,
-        #050816 70%,
-        #01030a 100%);
-    background:
-        radial-gradient(
-            circle at center,
-            #243d73 0%,
-            #13254c 25%,
-            #091328 55%,
-            #02040d 100%
-        );
-} */
-
-/* .stars {
-    position: absolute;
-    inset: 0;
-}
-
-.earth {
-    position: absolute;
-
-    width: 1000px;
-    height: 1000px;
-
-    right: -250px;
-    bottom: -250px;
-
-    border-radius: 50%;
-
-    opacity: .2;
-}
-
-.overlay {
-    position: absolute;
-    inset: 0;
-
-    background: rgba(0,0,0,.35);
-} */

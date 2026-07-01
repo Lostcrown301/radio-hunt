@@ -1,0 +1,89 @@
+.wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  filter: blur(90px);
+  animation: drift 30s ease-in-out infinite;
+}
+
+/* ── Large purple top-center ── */
+.purpleMain {
+  width: 700px;
+  height: 500px;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse,
+    rgba(120, 60, 255, 0.40) 0%,
+    rgba(80, 30, 200, 0.18) 50%,
+    transparent 75%
+  );
+  animation-duration: 35s;
+}
+
+/* ── Smaller purple — top left area ── */
+.purpleLeft {
+  width: 420px;
+  height: 350px;
+  top: -60px;
+  left: 5%;
+  background: radial-gradient(ellipse,
+    rgba(160, 80, 255, 0.25) 0%,
+    rgba(120, 50, 220, 0.10) 55%,
+    transparent 80%
+  );
+  animation-duration: 28s;
+  animation-delay: -10s;
+}
+
+/* ── Blue nebula — right side ── */
+.blueRight {
+  width: 500px;
+  height: 600px;
+  top: 0;
+  right: -80px;
+  background: radial-gradient(ellipse,
+    rgba(30, 80, 220, 0.22) 0%,
+    rgba(20, 60, 180, 0.10) 55%,
+    transparent 80%
+  );
+  animation-duration: 40s;
+  animation-delay: -18s;
+}
+
+/* ── Faint cyan — bottom-left ── */
+.cyanBL {
+  width: 350px;
+  height: 350px;
+  bottom: 0;
+  left: -60px;
+  background: radial-gradient(ellipse,
+    rgba(0, 200, 220, 0.10) 0%,
+    transparent 70%
+  );
+  animation-duration: 24s;
+  animation-delay: -6s;
+}
+
+@keyframes drift {
+  0%   { transform: translate(0, 0)          scale(1); }
+  33%  { transform: translate(18px, -14px)   scale(1.04); }
+  66%  { transform: translate(-12px, 10px)   scale(0.97); }
+  100% { transform: translate(0, 0)          scale(1); }
+}
+
+/* purpleMain needs its own base transform for centering */
+.purpleMain { animation-name: driftCenter; }
+
+@keyframes driftCenter {
+  0%   { transform: translateX(-50%) translate(0, 0)        scale(1); }
+  33%  { transform: translateX(-50%) translate(16px, -12px) scale(1.04); }
+  66%  { transform: translateX(-50%) translate(-10px, 8px)  scale(0.97); }
+  100% { transform: translateX(-50%) translate(0, 0)        scale(1); }
+}

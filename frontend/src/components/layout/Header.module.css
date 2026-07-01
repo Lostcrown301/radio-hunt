@@ -1,0 +1,125 @@
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Left ── */
+.left {
+  display: flex;
+  align-items: center;
+}
+
+.howToPlay {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.howToPlay:hover {
+  background: rgba(255,255,255,0.11);
+  transform: scale(1.03);
+}
+
+/* ── Center ── */
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.antennaWrap {
+  margin-bottom: 2px;
+  filter: drop-shadow(0 0 8px var(--c-purple-2));
+}
+
+.logo {
+  font-family: var(--font-logo);
+  font-size: clamp(28px, 3.5vw, 46px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--c-text);
+  text-shadow:
+    0 0 20px rgba(168, 85, 247, 0.8),
+    0 0 40px rgba(139, 92, 246, 0.4);
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--c-muted);
+  letter-spacing: 0.06em;
+}
+
+/* ── Right ── */
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+}
+
+.pillIcon {
+  display: flex;
+  align-items: center;
+}
+
+.pillText {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.pillLabel {
+  font-size: 10px;
+  color: var(--c-muted);
+  line-height: 1;
+}
+
+.pillValue {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.valOrange { color: var(--c-orange); }
+.valYellow { color: var(--c-yellow); }
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.profile:hover {
+  background: rgba(255,255,255,0.10);
+  transform: scale(1.03);
+}
