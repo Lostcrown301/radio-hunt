@@ -10,11 +10,6 @@ import styles from "./WorldMap.module.css";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-// Algeria ISO numeric code = 012
-// const HIGHLIGHTED_ISO = "012";
-// const MARKER_COORDS   = [2.6, 28.0];
-// const MARKER_LABEL    = "Algeria";
-
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 8;
 const DRAG_THRESHOLD = 4; // px — below this, mouseup is a click not a drag

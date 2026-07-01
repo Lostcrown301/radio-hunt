@@ -18,7 +18,7 @@ export default function GamePage() {
   const [hintsOpen,  setHintsOpen]  = useState(false);
   const [statsOpen,  setStatsOpen]  = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
-  console.log("Selected Country:", selectedCountry);
+  // console.log("Selected Country:", selectedCountry);
 
   const openHints = useCallback(() => setHintsOpen(true),  []);
   const openStats = useCallback(() => setStatsOpen(true),  []);
@@ -84,7 +84,6 @@ export default function GamePage() {
               onHints={openHints}
               onStats={openStats}
             />
-            {/* <BottomBar selectedCountry={selectedCountry?.name || ""} /> */}
             <BottomBar
                 selectedCountry={
                     selectedCountry
@@ -112,7 +111,13 @@ export default function GamePage() {
             <PreviousGuesses />
 
             {/* Bottom actions */}
-            <BottomBar selectedCountry="Algeria" />
+            <BottomBar
+                selectedCountry={
+                    selectedCountry
+                        ? selectedCountry.name
+                        : "Select a country"
+                }
+            />
 
             {/* Floating controls row */}
             <div className={styles.phoneFabs}>
