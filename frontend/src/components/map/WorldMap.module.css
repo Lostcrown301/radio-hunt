@@ -1,42 +1,35 @@
-/* ── Card fills available space in the layout ── */
+/* ── Card fills available space ── */
 .card {
   flex: 1;
   min-height: 0;
   overflow: hidden;
   padding: 0;
-  /* Remove the hover lift — map has its own interaction */
 }
 
-/* ── Zoom container: the DOM node d3 attaches touch/wheel listeners to ── */
-.zoomContainer {
+/* ── Interactive wrapper ── */
+.interactiveContainer {
   width: 100%;
   height: 100%;
   overflow: hidden;
   position: relative;
-  /* Tells the browser: touch events here are handled by JS, disable native pan/zoom */
+
+  /* Tell browser: JS handles all touch gestures here */
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+
+  cursor: grab;
 }
 
-/* ── Inner wrapper measured by ResizeObserver ── */
-.mapWrap {
-  width: 100%;
-  height: 100%;
-  position: relative;
+.interactiveContainer:active {
+  cursor: grabbing;
 }
 
 /* ── SVG element ── */
 .map {
-  display: block;
   width: 100%;
   height: 100%;
-  /* Cursor managed by d3 dynamically; default set here as fallback */
-  cursor: grab;
-}
-
-.map:active {
-  cursor: grabbing;
+  display: block;
 }
 
 /* ════════════════════ Responsive ════════════════════ */
@@ -45,7 +38,6 @@
   .card { flex: 1; min-height: 200px; }
 }
 
-/* Phone portrait — aspect-ratio box */
 @media (max-width: 575px) and (orientation: portrait) {
   .card {
     flex: none;
@@ -54,8 +46,7 @@
     overflow: hidden;
   }
 
-  .zoomContainer,
-  .mapWrap {
+  .interactiveContainer {
     width: 100%;
     height: 100%;
   }

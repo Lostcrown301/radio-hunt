@@ -1,179 +1,182 @@
-/**
- * WorldMap
- * ────────
- * Interactive world map with GeoGuessr-style zoom/pan.
- *
- * Props:
- *  selectedCountry   — ISO numeric string (e.g. "012" for Algeria)
- *  onSelectCountry   — callback(isoId, countryName)
- *  markerCoords      — [lon, lat]
- *  markerLabel       — string
- */
-
 import { useState, useRef, useCallback, useEffect } from "react";
-import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
-import { useMapZoom } from "../../hooks/useMapZoom";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from "react-simple-maps";
 import GlassCard from "../ui/GlassCard";
 import styles from "./WorldMap.module.css";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-// Demo defaults — these will come from game props in production
-const DEMO_ISO    = "012";
-const DEMO_COORDS = [2.6, 28.0];
-const DEMO_LABEL  = "Algeria";
+// Algeria ISO numeric code = 012
+const HIGHLIGHTED_ISO = "012";
+const MARKER_COORDS   = [2.6, 28.0];
+const MARKER_LABEL    = "Algeria";
 
-// Colours
-const C_DEFAULT     = "#1e2240";
-const C_HOVER       = "#2d3460";
-const C_SELECTED    = "#34D399";
-const C_STROKE      = "rgba(139,92,246,0.30)";
-const C_STROKE_SEL  = "#34D399";
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 8;
+const DRAG_THRESHOLD = 4; // px — below this, mouseup is a click not a drag
 
-// ── ResizeObserver to measure the container ──────────────────────────
-function useElementSize(ref) {
-  const [size, setSize] = useState({ width: 0, height: 0 });
+export default function WorldMap() {
+  const [zoom, setZoom]   = useState(1);
+  const [center, setCenter] = useState([0, 20]);
 
+  // Drag-vs-click detection
+  const mouseDownPos = useRef(null);
+  const isDragging   = useRef(false);
+
+  // ── Zoom helpers (available for zoom buttons if added later) ───
+  // const zoomIn  = () => setZoom((z) => Math.min(z * 1.5, MAX_ZOOM));
+  // const zoomOut = () => setZoom((z) => Math.max(z / 1.5, MIN_ZOOM));
+
+  // ── Ref for the interactive container (for passive:false listeners) ──
+  const containerRef = useRef(null);
+
+  // Attach wheel + touch listeners as passive:false via useEffect
+  // (React synthetic events can't call preventDefault on passive listeners)
   useEffect(() => {
-    const el = ref.current;
+    const el = containerRef.current;
     if (!el) return;
 
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setSize((prev) =>
-        prev.width === width && prev.height === height
-          ? prev
-          : { width, height }
-      );
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [ref]);
+    const onWheel = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const delta = e.deltaY > 0 ? -1 : 1;
+      setZoom((z) => {
+        const next = delta > 0 ? z * 1.2 : z / 1.2;
+        return Math.min(Math.max(next, MIN_ZOOM), MAX_ZOOM);
+      });
+    };
 
-  return size;
-}
+    const onTouchStart = (e) => { e.preventDefault(); };
+    const onTouchMove  = (e) => { e.preventDefault(); };
 
-export default function WorldMap({
-  selectedCountry = DEMO_ISO,
-  onSelectCountry = () => {},
-  markerCoords    = DEMO_COORDS,
-  markerLabel     = DEMO_LABEL,
-}) {
-  // Measure available space
-  const wrapRef = useRef(null);
-  const { width, height } = useElementSize(wrapRef);
+    el.addEventListener("wheel",      onWheel,      { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove",  onTouchMove,  { passive: false });
 
-  // Zoom/pan
-  const { transform, svgRef, containerRef, isRealClick } = useMapZoom({ width, height });
+    return () => {
+      el.removeEventListener("wheel",      onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove",  onTouchMove);
+    };
+  }, []);
 
-  // Hover state (desktop only — no hover on touch)
-  const [hoveredId, setHoveredId] = useState(null);
+  // ── Mouse down/up for drag-vs-click detection ───────────────────
+  const handleMouseDown = useCallback((e) => {
+    mouseDownPos.current = { x: e.clientX, y: e.clientY };
+    isDragging.current   = false;
+  }, []);
 
-  const handleClick = useCallback(
-    (geo) => {
-      if (!isRealClick()) return;
-      onSelectCountry(geo.id, geo.properties?.name ?? geo.id);
-    },
-    [isRealClick, onSelectCountry]
-  );
+  const handleMouseMove = useCallback((e) => {
+    if (!mouseDownPos.current) return;
+    const dx = e.clientX - mouseDownPos.current.x;
+    const dy = e.clientY - mouseDownPos.current.y;
+    if (Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+      isDragging.current = true;
+    }
+  }, []);
 
-  // d3 zoom transform string applied to the <g>
-  const gTransform = `translate(${transform.x},${transform.y}) scale(${transform.k})`;
+  const handleMouseUp = useCallback(() => {
+    mouseDownPos.current = null;
+  }, []);
 
-  // Compute projection scale from width so map fills the card at zoom=1
-  const projScale = width > 0 ? (width / 6.28) * 0.85 : 140;
+  // ── ZoomableGroup move end ──────────────────────────────────────
+  const handleMoveEnd = useCallback((position) => {
+    setCenter(position.coordinates);
+    setZoom(position.zoom);
+  }, []);
+
+  // ── Country click (suppressed during drag) ──────────────────────
+  // (placeholder — wired up by parent via props in the real game)
+  const handleCountryClick = useCallback((_geo) => {
+    if (isDragging.current) return;
+    // TODO: onSelectCountry(_geo.id, _geo.properties.name)
+  }, []);
 
   return (
-    <GlassCard className={styles.card}>
-      {/* containerRef: passive:false wheel + touch listeners */}
-      <div ref={containerRef} className={styles.zoomContainer}>
-        {/* svgRef: hook queries the <svg> inside this div */}
-        <div ref={svgRef} className={styles.mapInner}>
-          {/* wrapRef: measured by ResizeObserver */}
-          <div ref={wrapRef} className={styles.mapWrap}>
-            {width > 0 && height > 0 && (
-              <ComposableMap
-                width={width}
-                height={height}
-                projection="geoMercator"
-                projectionConfig={{ scale: projScale, center: [0, 20] }}
-                style={{ width: "100%", height: "100%", display: "block" }}
+    <GlassCard className={styles.card} hover>
+      {/* Container with passive:false listeners via useEffect */}
+      <div
+        ref={containerRef}
+        className={styles.interactiveContainer}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+      >
+        {/* ── Exact original ComposableMap rendering ── */}
+        <ComposableMap
+          className={styles.map}
+          projection="geoMercator"
+          projectionConfig={{ scale: 140, center: [0, 20] }}
+        >
+          <ZoomableGroup
+            zoom={zoom}
+            center={center}
+            minZoom={MIN_ZOOM}
+            maxZoom={MAX_ZOOM}
+            onMoveEnd={handleMoveEnd}
+            translateExtent={[[-50, -60], [850, 500]]}
+          >
+            <Geographies geography={GEO_URL}>
+              {({ geographies }) =>
+                geographies.map((geo) => {
+                  const isHighlighted = geo.id === HIGHLIGHTED_ISO;
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      onClick={() => handleCountryClick(geo)}
+                      style={{
+                        default: {
+                          fill:        isHighlighted ? "#34D399" : "#1e2240",
+                          stroke:      isHighlighted ? "#34D399" : "rgba(139,92,246,0.30)",
+                          strokeWidth: isHighlighted ? 1.5 : 0.5,
+                          outline:     "none",
+                        },
+                        hover: {
+                          fill:    isHighlighted ? "#34D399" : "#2a2f56",
+                          outline: "none",
+                          cursor:  "pointer",
+                        },
+                        pressed: { outline: "none" },
+                      }}
+                    />
+                  );
+                })
+              }
+            </Geographies>
+
+            {/* Country label tooltip — exactly as before */}
+            <Marker coordinates={MARKER_COORDS}>
+              <rect
+                x={-32}
+                y={-26}
+                width={64}
+                height={22}
+                rx={5}
+                fill="rgba(13,14,30,0.85)"
+                stroke="rgba(52,211,153,0.5)"
+                strokeWidth={1}
+              />
+              <text
+                textAnchor="middle"
+                y={-10}
+                style={{
+                  fontSize:   11,
+                  fontFamily: "Inter,sans-serif",
+                  fill:       "#E6E8F2",
+                  fontWeight: 600,
+                }}
               >
-                {/* All geography rendered inside this transformed group */}
-                <g transform={gTransform} className={styles.zoomGroup}>
-                  <Geographies geography={GEO_URL}>
-                    {({ geographies }) =>
-                      geographies.map((geo) => {
-                        const isSel   = geo.id === selectedCountry;
-                        const isHov   = geo.id === hoveredId && !isSel;
-
-                        return (
-                          <Geography
-                            key={geo.rsmKey}
-                            geography={geo}
-                            onMouseEnter={() => setHoveredId(geo.id)}
-                            onMouseLeave={() => setHoveredId(null)}
-                            onClick={() => handleClick(geo)}
-                            style={{
-                              default: {
-                                fill:        isSel ? C_SELECTED : C_DEFAULT,
-                                stroke:      isSel ? C_STROKE_SEL : C_STROKE,
-                                strokeWidth: isSel ? 1.5 / transform.k : 0.5 / transform.k,
-                                outline:     "none",
-                                cursor:      "pointer",
-                              },
-                              hover: {
-                                fill:        isSel ? C_SELECTED : C_HOVER,
-                                stroke:      isSel ? C_STROKE_SEL : C_STROKE,
-                                strokeWidth: isSel ? 1.5 / transform.k : 0.5 / transform.k,
-                                outline:     "none",
-                                cursor:      "pointer",
-                              },
-                              pressed: {
-                                fill:    isSel ? C_SELECTED : C_HOVER,
-                                outline: "none",
-                              },
-                            }}
-                          />
-                        );
-                      })
-                    }
-                  </Geographies>
-
-                  {/* Tooltip marker — scales inverse to zoom so text stays readable */}
-                  {markerCoords && markerLabel && (
-                    <Marker coordinates={markerCoords}>
-                      <g transform={`scale(${1 / transform.k})`}>
-                        <rect
-                          x={-34} y={-28}
-                          width={68} height={22}
-                          rx={5}
-                          fill="rgba(13,14,30,0.90)"
-                          stroke="rgba(52,211,153,0.55)"
-                          strokeWidth={1}
-                        />
-                        <text
-                          textAnchor="middle"
-                          y={-12}
-                          style={{
-                            fontSize:      11,
-                            fontFamily:    "Inter, sans-serif",
-                            fill:          "#E6E8F2",
-                            fontWeight:    600,
-                            pointerEvents: "none",
-                            userSelect:    "none",
-                          }}
-                        >
-                          {markerLabel}
-                        </text>
-                      </g>
-                    </Marker>
-                  )}
-                </g>
-              </ComposableMap>
-            )}
-          </div>
-        </div>
+                {MARKER_LABEL}
+              </text>
+            </Marker>
+          </ZoomableGroup>
+        </ComposableMap>
       </div>
     </GlassCard>
   );
