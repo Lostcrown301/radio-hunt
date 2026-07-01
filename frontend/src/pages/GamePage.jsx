@@ -17,6 +17,8 @@ import styles from "./GamePage.module.css";
 export default function GamePage() {
   const [hintsOpen,  setHintsOpen]  = useState(false);
   const [statsOpen,  setStatsOpen]  = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  console.log("Selected Country:", selectedCountry);
 
   const openHints = useCallback(() => setHintsOpen(true),  []);
   const openStats = useCallback(() => setStatsOpen(true),  []);
@@ -61,7 +63,10 @@ export default function GamePage() {
         center={
           <>
             <RadioPlayer />
-            <WorldMap />
+            <WorldMap 
+            selectedCountry={selectedCountry}
+            onCountrySelect={setSelectedCountry}
+            />
           </>
         }
 
@@ -79,7 +84,14 @@ export default function GamePage() {
               onHints={openHints}
               onStats={openStats}
             />
-            <BottomBar selectedCountry="Algeria" />
+            {/* <BottomBar selectedCountry={selectedCountry?.name || ""} /> */}
+            <BottomBar
+                selectedCountry={
+                    selectedCountry
+                        ? selectedCountry.name
+                        : "Select a country"
+                }
+            />
             <FloatingRight />
           </div>
         }
