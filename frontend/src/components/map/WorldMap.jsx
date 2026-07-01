@@ -14,7 +14,7 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 8;
 const DRAG_THRESHOLD = 4; // px — below this, mouseup is a click not a drag
 
-export default function WorldMap({selectedCountry, onCountrySelect}) {
+export default function WorldMap({options, selectedCountry, onCountrySelect, guessResult, correctCountry}) {
   const [zoom, setZoom]   = useState(1);
   const [center, setCenter] = useState([0, 20]);
 
@@ -124,44 +124,100 @@ export default function WorldMap({selectedCountry, onCountrySelect}) {
             <Geographies geography={GEO_URL}>
               {({ geographies }) =>
                 geographies.map((geo) => {
+                  const isOption = options.includes(geo.properties.name);
                   const isSelected = selectedCountry?.id === geo.id;
+                  const isCorrect = correctCountry === geo.properties.name;
                   return (
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      onClick={() => handleCountryClick(geo)}
-                    //   style={{
-                    //     default: {
-                    //       fill:        isHighlighted ? "#34D399" : "#1e2240",
-                    //       stroke:      isHighlighted ? "#34D399" : "rgba(139,92,246,0.30)",
-                    //       strokeWidth: isHighlighted ? 1.5 : 0.5,
-                    //       outline:     "none",
-                    //     },
-                    //     hover: {
-                    //       fill:    isHighlighted ? "#34D399" : "#2a2f56",
-                    //       outline: "none",
-                    //       cursor:  "pointer",
-                    //     },
-                    //     pressed: { outline: "none" },
-                    //   }}
+                      // onClick={() => handleCountryClick(geo)}
+                      onClick={() => {
+                        if (!isOption) return;
+                        handleCountryClick(geo);
+                      }}
+                      style={{
+                        default: {
+                          fill:
+                            guessResult === "wrong" && isSelected
+                              ? "#EF4444"
+                              : isCorrect
+                              ? "#22C55E"
+                              : isSelected
+                              ? "#8B5CF6"
+                              : isOption
+                              ? "#2F365F"
+                              : "#1E2240",
 
-                    style={{
-                      default: {
-                        fill: isSelected ? "#8B5CF6" : "#1e2240",
-                        // fill: "#34D399",
-                        stroke: isSelected ? "#A855F7" : "rgba(139,92,246,0.30)",
-                        strokeWidth: isSelected ? 1.5 : 0.5,
-                        outline: "none",
-                      },
-                      hover: {
-                        fill: isSelected ? "#8B5CF6" : "#2a2f56",
-                        outline: "none",
-                        cursor: "pointer",
-                      },
-                      pressed: {
-                        outline: "none",
-                      },
-                    }}
+                          stroke:
+                            guessResult === "wrong" && isSelected
+                              ? "#F87171"
+                              : isCorrect
+                              ? "#4ADE80"
+                              : isSelected
+                              ? "#A855F7"
+                              : isOption
+                              ? "#8B5CF6"
+                              : "rgba(139,92,246,0.30)",
+
+                          strokeWidth:
+                            isSelected
+                              ? 1.5
+                              : isOption
+                              ? 1
+                              : 0.5,
+
+                          outline: "none",
+                        },
+
+                        hover: {
+                          fill:
+                            guessResult === "wrong" && isSelected
+                              ? "#EF4444"
+                              : isCorrect
+                              ? "#22C55E"
+                              : isSelected
+                              ? "#8B5CF6"
+                              : isOption
+                              ? "#3B4374"
+                              : "#1E2240",
+
+                          stroke:
+                            guessResult === "wrong" && isSelected
+                              ? "#F87171"
+                              : isCorrect
+                              ? "#4ADE80"
+                              : isSelected
+                              ? "#A855F7"
+                              : isOption
+                              ? "#A855F7"
+                              : "rgba(139,92,246,0.30)",
+
+                          outline: "none",
+                          cursor: isOption ? "pointer" : "default",
+                        },
+
+                        pressed: {
+                          outline: "none",
+                        },
+                      }}
+                    // style={{
+                    //   default: {
+                    //     fill: isSelected ? "#8B5CF6" : "#1e2240",
+                    //     // fill: "#34D399",
+                    //     stroke: isSelected ? "#A855F7" : "rgba(139,92,246,0.30)",
+                    //     strokeWidth: isSelected ? 1.5 : 0.5,
+                    //     outline: "none",
+                    //   },
+                    //   hover: {
+                    //     fill: isSelected ? "#8B5CF6" : "#2a2f56",
+                    //     outline: "none",
+                    //     cursor: "pointer",
+                    //   },
+                    //   pressed: {
+                    //     outline: "none",
+                    //   },
+                    // }}
                     />
                   );
                 })

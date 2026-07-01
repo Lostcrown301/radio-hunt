@@ -14,15 +14,20 @@ import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
 import Drawer                  from "../components/ui/Drawer";
 import styles from "./GamePage.module.css";
 
-import { fetchRandomStation } from "../services/radioService";
+import { fetchRandomStation, submitGuess } from "../services/radioService";
 
 
 export default function GamePage() {
   const [hintsOpen,  setHintsOpen]  = useState(false);
   const [statsOpen,  setStatsOpen]  = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
+
+  const [correctCountry, setCorrectCountry] = useState(null);
+  const [guessResult, setGuessResult] = useState(null);
+
   const [game, setGame] = useState(null);
 
+//  const [message, setMessage] = useState("");
   const selectedCountryName = selectedCountry?.name || "Select a Country";
   // console.log("Selected Country:", selectedCountry);
 
@@ -47,7 +52,28 @@ export default function GamePage() {
   }, []);
 
   const handleSubmitGuess = async () => {
-    console.log("Submit Guess");
+    if (!selectedCountry) {
+      console.log("Select a country first");
+      return;
+    }
+
+    if (!game) {
+      console.log("Game not loaded");
+      return;
+    }
+
+    try {
+      const result = await submitGuess(
+        game.gameId,
+        selectedCountry.name
+      );
+      setCorrectCountry(result.correctCountry);
+      setGuessResult(result.correct ? "correct" : "wrong");
+
+      console.log(result);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSkip = async () => {
@@ -94,9 +120,13 @@ export default function GamePage() {
         center={
           <>
             <RadioPlayer stationName={game?.stationName} streamUrl={game?.streamUrl}/>
-            <WorldMap 
+            <WorldMap
+            options={game?.options || []}
             selectedCountry={selectedCountry}
             onCountrySelect={setSelectedCountry}
+            guessResult={guessResult}
+            correctCountry={correctCountry}
+//            onInvalidSelection={() => setMessage("Select one of the highlighted countries")}
             />
           </>
         }
