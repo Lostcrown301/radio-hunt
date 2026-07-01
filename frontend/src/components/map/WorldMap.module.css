@@ -1,39 +1,61 @@
+/* ── Card fills available space in the layout ── */
 .card {
   flex: 1;
   min-height: 0;
   overflow: hidden;
   padding: 0;
+  /* Remove the hover lift — map has its own interaction */
 }
 
-.map {
+/* ── Zoom container: the DOM node d3 attaches touch/wheel listeners to ── */
+.zoomContainer {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  position: relative;
+  /* Tells the browser: touch events here are handled by JS, disable native pan/zoom */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Inner wrapper measured by ResizeObserver ── */
+.mapWrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ── SVG element ── */
+.map {
   display: block;
+  width: 100%;
+  height: 100%;
+  /* Cursor managed by d3 dynamically; default set here as fallback */
+  cursor: grab;
+}
+
+.map:active {
+  cursor: grabbing;
 }
 
 /* ════════════════════ Responsive ════════════════════ */
 
-/* Tablet — map is part of the body flex, flex:1 handles height */
 @media (max-width: 767px) {
-  .card {
-    flex: 1;
-    min-height: 200px;
-  }
+  .card { flex: 1; min-height: 200px; }
 }
 
-/* Phone portrait — fixed aspect ratio so map doesn't collapse */
+/* Phone portrait — aspect-ratio box */
 @media (max-width: 575px) and (orientation: portrait) {
   .card {
     flex: none;
-    height: 0;
-    padding-bottom: 56%;  /* 16:9-ish aspect ratio */
-    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
     overflow: hidden;
   }
 
-  .map {
-    position: absolute;
-    inset: 0;
+  .zoomContainer,
+  .mapWrap {
     width: 100%;
     height: 100%;
   }
