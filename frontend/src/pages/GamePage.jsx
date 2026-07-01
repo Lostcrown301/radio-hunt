@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Background              from "../components/background/Background";
 import GameLayout              from "../components/layout/GameLayout";
 import Header                  from "../components/layout/Header";
@@ -14,14 +14,45 @@ import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
 import Drawer                  from "../components/ui/Drawer";
 import styles from "./GamePage.module.css";
 
+import { fetchRandomStation } from "../services/radioService";
+
+
 export default function GamePage() {
   const [hintsOpen,  setHintsOpen]  = useState(false);
   const [statsOpen,  setStatsOpen]  = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [game, setGame] = useState(null);
+
+  const selectedCountryName = selectedCountry?.name || "Select a Country";
   // console.log("Selected Country:", selectedCountry);
 
   const openHints = useCallback(() => setHintsOpen(true),  []);
   const openStats = useCallback(() => setStatsOpen(true),  []);
+
+
+  useEffect(() => {
+    const loadGame = async () => {
+      try {
+        const data = await fetchRandomStation();
+
+        console.log("Loaded game:", data);
+
+        setGame(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadGame();
+  }, []);
+
+  const handleSubmitGuess = async () => {
+    console.log("Submit Guess");
+  };
+
+  const handleSkip = async () => {
+    console.log("Skip");
+  };
 
   return (
     <>
@@ -62,7 +93,7 @@ export default function GamePage() {
 
         center={
           <>
-            <RadioPlayer />
+            <RadioPlayer stationName={game?.stationName} streamUrl={game?.streamUrl}/>
             <WorldMap 
             selectedCountry={selectedCountry}
             onCountrySelect={setSelectedCountry}
@@ -85,11 +116,9 @@ export default function GamePage() {
               onStats={openStats}
             />
             <BottomBar
-                selectedCountry={
-                    selectedCountry
-                        ? selectedCountry.name
-                        : "Select a country"
-                }
+                selectedCountry={selectedCountryName}
+                onSubmit={handleSubmitGuess}
+                onSkip={handleSkip}
             />
             <FloatingRight />
           </div>
@@ -112,11 +141,9 @@ export default function GamePage() {
 
             {/* Bottom actions */}
             <BottomBar
-                selectedCountry={
-                    selectedCountry
-                        ? selectedCountry.name
-                        : "Select a country"
-                }
+                selectedCountry={selectedCountryName}
+                onSubmit={handleSubmitGuess}
+                onSkip={handleSkip}
             />
 
             {/* Floating controls row */}
