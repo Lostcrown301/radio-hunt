@@ -3,6 +3,7 @@ import { MdRadio } from "react-icons/md";
 import GlassCard from "../ui/GlassCard";
 import Waveform from "./Waveform";
 import styles from "./RadioPlayer.module.css";
+import { FaPlay } from "react-icons/fa";
 
 const ELAPSED = "--:--";
 const DURATION = "LIVE";
@@ -12,9 +13,13 @@ export default function RadioPlayer({stationName, streamUrl}) {
 
   const audioRef = useRef(null);
   const [status, setStatus] = useState("idle");
+  const [hasStarted, setHasStarted] = useState(false);
   
   useEffect(() => {
     if (!streamUrl || !audioRef.current) return;
+
+    setHasStarted(false);   // 👈 Add this
+    setStatus("idle");      // 👈 Also reset the status
 
     const audio = audioRef.current;
 
@@ -31,7 +36,6 @@ export default function RadioPlayer({stationName, streamUrl}) {
     };
 
     playAudio();
-
   }, [streamUrl]);
 
   useEffect(() => {
@@ -40,8 +44,12 @@ export default function RadioPlayer({stationName, streamUrl}) {
 
     const handleLoadStart = () => setStatus("connecting");
     const handleWaiting = () => setStatus("buffering");
-    const handlePlaying = () => setStatus("playing");
+    // const handlePlaying = () => setStatus("playing");
     const handleError = () => setStatus("error");
+    const handlePlaying = () => {
+      setStatus("playing");
+      setHasStarted(true);
+    };
 
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("waiting", handleWaiting);
@@ -56,15 +64,41 @@ export default function RadioPlayer({stationName, streamUrl}) {
     };
   }, []);
 
+  const handlePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      await audio.play();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
 
   return (
     <GlassCard className={styles.card}>
       {/* ── Radio icon ── */}
-      <div className={styles.iconWrap} aria-hidden="true">
-        <div className={styles.iconRing}>
+    <div
+      className={styles.iconWrap}
+      onClick={handlePlay}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handlePlay();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+    >
+      <div className={styles.iconRing}>
+        {hasStarted ? (
           <MdRadio size={32} color="var(--c-purple-2)" />
-        </div>
+        ) : (
+          <FaPlay size={24} color="var(--c-purple-2)" />
+        )}
       </div>
+    </div>
 
       {/* ── Right section ── */}
       <div className={styles.content}>
