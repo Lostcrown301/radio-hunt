@@ -64,13 +64,14 @@ export const checkGuess = async (req, res) => {
             });
         }
 
-        const correct = game.country.trim().toLowerCase() === country.trim().toLowerCase();
+        console.log(game);
+        const correct = game.currentStation.country.trim().toLowerCase() === country.trim().toLowerCase();
 
         deleteGame(gameId);
 
         res.json({
             correct,
-            correctCountry: game.country
+            correctCountry: game.currentStation.country
         });
     }
     catch(error) {

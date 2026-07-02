@@ -17,6 +17,7 @@ const DRAG_THRESHOLD = 4; // px — below this, mouseup is a click not a drag
 export default function WorldMap({options, selectedCountry, onCountrySelect, guessResult, correctCountry}) {
   const [zoom, setZoom]   = useState(1);
   const [center, setCenter] = useState([0, 20]);
+  console.log("Options:", options);
 
   // Drag-vs-click detection
   const mouseDownPos = useRef(null);
@@ -127,6 +128,12 @@ export default function WorldMap({options, selectedCountry, onCountrySelect, gue
                   const isOption = options.includes(geo.properties.name);
                   const isSelected = selectedCountry?.id === geo.id;
                   const isCorrect = correctCountry === geo.properties.name;
+
+                  // console.log("Options:", options);
+
+                  if (isOption) {
+                      console.log("Matched:", geo.properties.name);
+                  }
                   return (
                     <Geography
                       key={geo.rsmKey}

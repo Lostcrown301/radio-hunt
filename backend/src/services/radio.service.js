@@ -70,6 +70,7 @@ async function getWorkingRadioBrowserUrl() {
 
     for (const host of hosts) {
         try {
+//            console.log(host);
             await axios.get(`${host}/json/stations`, {
                 timeout: 5000,
                 params: { limit: 1 }
