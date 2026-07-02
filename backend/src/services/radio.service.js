@@ -6,7 +6,7 @@ import fs from "fs/promises";
 const resolveSrv = util.promisify(dns.resolveSrv);
 
 export async function fetchRandomStation() {
-    const workingUrl = await get_radiobrowser_base_url_random();
+    const workingUrl = await getWorkingRadioBrowserUrl();
 
     // Get all countries
     const countriesResponse = await axios.get(
@@ -65,14 +65,23 @@ function get_radiobrowser_base_urls() {
     });
 }
 
-/**
- * Get a random available radio-browser server.
- * Returns: string - base url for radio-browser api
- */
-function get_radiobrowser_base_url_random() {
-    return get_radiobrowser_base_urls().then(hosts => {
-        var item = hosts[Math.floor(Math.random() * hosts.length)];
-        // console.log(item);
-        return item;
-    });
+async function getWorkingRadioBrowserUrl() {
+    const hosts = await get_radiobrowser_base_urls();
+
+    for (const host of hosts) {
+        try {
+            await axios.get(`${host}/json/stations`, {
+                timeout: 5000,
+                params: { limit: 1 }
+            });
+
+            console.log(`Using mirror: ${host}`);
+            return host;
+        }
+        catch (err) {
+            console.log(`Mirror failed: ${host}`, err.code || err.message);
+        }
+    }
+
+    throw new Error("No Radio Browser mirrors are available.");
 }

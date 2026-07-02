@@ -16,6 +16,8 @@ import styles from "./GamePage.module.css";
 
 import { fetchRandomStation, submitGuess } from "../services/radioService";
 
+import { useRef } from "react";
+
 
 export default function GamePage() {
   const [hintsOpen,  setHintsOpen]  = useState(false);
@@ -33,6 +35,16 @@ export default function GamePage() {
 
   const openHints = useCallback(() => setHintsOpen(true),  []);
   const openStats = useCallback(() => setStatsOpen(true),  []);
+
+  const audioRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+
+    audioRef.current.muted = !audioRef.current.muted;
+    setIsMuted(audioRef.current.muted);
+  };
 
 
   useEffect(() => {
@@ -119,7 +131,7 @@ export default function GamePage() {
 
         center={
           <>
-            <RadioPlayer stationName={game?.stationName} streamUrl={game?.streamUrl}/>
+            <RadioPlayer stationName={game?.stationName} streamUrl={game?.streamUrl} audioRef={audioRef}/>
             <WorldMap
             options={game?.options || []}
             selectedCountry={selectedCountry}
@@ -144,6 +156,8 @@ export default function GamePage() {
             <FloatingLeft
               onHints={openHints}
               onStats={openStats}
+              isMuted={isMuted}
+              onToggleMute={toggleMute}
             />
             <BottomBar
                 selectedCountry={selectedCountryName}

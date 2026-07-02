@@ -15,9 +15,14 @@ export const getRandomStation = async (req, res) => {
         const options = createOptions(stationData.country);
 
         createGame(gameId, {
-            country: stationData.country,
-            stationUuid: stationData.stationuuid,
-            // createdAt: Date.now()
+            score: 0,
+            streak: 0,
+            currentRound: 1,
+            maxRounds: 10,
+            currentStation: {
+                country: stationData.country,
+                stationUuid: stationData.stationuuid
+            }
         });
 
         // console.log(gameID);

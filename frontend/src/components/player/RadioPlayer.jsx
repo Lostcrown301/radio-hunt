@@ -9,9 +9,8 @@ const ELAPSED = "--:--";
 const DURATION = "LIVE";
 const PROGRESS = 100;
 
-export default function RadioPlayer({stationName, streamUrl}) {
+export default function RadioPlayer({stationName, streamUrl, audioRef}) {
 
-  const audioRef = useRef(null);
   const [status, setStatus] = useState("idle");
   const [hasStarted, setHasStarted] = useState(false);
   
