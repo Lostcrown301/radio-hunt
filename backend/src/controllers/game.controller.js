@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { fetchRandomStation } from "../services/radio.service.js";
 import { createGame, getGame, deleteGame } from "../utils/gameStore.js";
 import { createOptions } from "../utils/createOptions.js"
+import { normalizeCountry } from "../utils/normalizeCountry.js"
 
 export const getRandomStation = async (req, res) => {
     
@@ -9,10 +10,12 @@ export const getRandomStation = async (req, res) => {
     
     try {
         const stationData = await fetchRandomStation();
+
+        const normalizedCountry = normalizeCountry(stationData.country);
         // res.json(stationData);
         const gameId = crypto.randomUUID();
 
-        const options = createOptions(stationData.country);
+        const options = createOptions(normalizedCountry);
 
         createGame(gameId, {
             score: 0,
@@ -20,7 +23,7 @@ export const getRandomStation = async (req, res) => {
             currentRound: 1,
             maxRounds: 10,
             currentStation: {
-                country: stationData.country,
+                country: normalizedCountry,
                 stationUuid: stationData.stationuuid
             }
         });

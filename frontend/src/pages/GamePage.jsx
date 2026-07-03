@@ -27,6 +27,8 @@ export default function GamePage() {
   const [correctCountry, setCorrectCountry] = useState(null);
   const [guessResult, setGuessResult] = useState(null);
 
+  const [interactionLocked, setInteractionLocked] = useState(false);
+
   const [game, setGame] = useState(null);
 
 //  const [message, setMessage] = useState("");
@@ -46,22 +48,29 @@ export default function GamePage() {
     setIsMuted(audioRef.current.muted);
   };
 
-
-  useEffect(() => {
-    const loadGame = async () => {
+    const loadGame = useCallback(async () => {
       try {
-        const data = await fetchRandomStation();
+          const data = await fetchRandomStation();
 
-        console.log("Loaded game:", data);
+          setGame(data);
+          //console.log("Loaded game:", data);
+      
+          // Reset UI for next round
+          setSelectedCountry(null);
+          setCorrectCountry(null);
+          setGuessResult(null);
+          setInteractionLocked(false);
 
-        setGame(data);
-      } catch (err) {
-        console.error(err);
       }
-    };
-
-    loadGame();
+      catch (err) {
+          console.error(err);
+      }
   }, []);
+
+  
+  useEffect(() => {
+    loadGame();
+  }, [loadGame]);
 
   const handleSubmitGuess = async () => {
     if (!selectedCountry) {
@@ -73,6 +82,8 @@ export default function GamePage() {
       console.log("Game not loaded");
       return;
     }
+    
+    setInteractionLocked(true);
 
     try {
       const result = await submitGuess(
@@ -138,6 +149,7 @@ export default function GamePage() {
             onCountrySelect={setSelectedCountry}
             guessResult={guessResult}
             correctCountry={correctCountry}
+            interactionLocked={interactionLocked}
 //            onInvalidSelection={() => setMessage("Select one of the highlighted countries")}
             />
           </>

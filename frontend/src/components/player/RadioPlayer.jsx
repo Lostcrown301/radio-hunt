@@ -17,8 +17,8 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
   useEffect(() => {
     if (!streamUrl || !audioRef.current) return;
 
-    setHasStarted(false);   // 👈 Add this
-    setStatus("idle");      // 👈 Also reset the status
+    setHasStarted(false);
+    setStatus("idle");
 
     const audio = audioRef.current;
 
