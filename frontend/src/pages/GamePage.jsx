@@ -29,6 +29,8 @@ export default function GamePage() {
 
   const [interactionLocked, setInteractionLocked] = useState(false);
 
+  const [roundFinished, setRoundFinished] = useState(false);
+
   const [game, setGame] = useState(null);
 
 //  const [message, setMessage] = useState("");
@@ -60,6 +62,7 @@ export default function GamePage() {
           setCorrectCountry(null);
           setGuessResult(null);
           setInteractionLocked(false);
+          setRoundFinished(false);
 
       }
       catch (err) {
@@ -93,14 +96,22 @@ export default function GamePage() {
       setCorrectCountry(result.correctCountry);
       setGuessResult(result.correct ? "correct" : "wrong");
 
+      setRoundFinished(true);
+
+
       console.log(result);
     } catch (err) {
       console.error(err);
+      setInteractionLocked(false);
     }
   };
 
   const handleSkip = async () => {
     console.log("Skip");
+  };
+
+  const handleNextStation = () => {
+      loadGame();
   };
 
   return (
@@ -174,7 +185,9 @@ export default function GamePage() {
             <BottomBar
                 selectedCountry={selectedCountryName}
                 onSubmit={handleSubmitGuess}
+                onNextStation={handleNextStation}
                 onSkip={handleSkip}
+                roundFinished={roundFinished}
             />
             <FloatingRight />
           </div>
@@ -199,7 +212,9 @@ export default function GamePage() {
             <BottomBar
                 selectedCountry={selectedCountryName}
                 onSubmit={handleSubmitGuess}
+                onNextStation={handleNextStation}
                 onSkip={handleSkip}
+                roundFinished={roundFinished}
             />
 
             {/* Floating controls row */}

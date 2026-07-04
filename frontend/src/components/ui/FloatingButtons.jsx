@@ -14,7 +14,6 @@ export function FloatingLeft({ onHints, onStats, isMuted, onToggleMute}) {
     <div className={styles.left}>
       <IconBtn icon={<LuSettings  size={17} />} label="Settings"   />
       <IconBtn icon={isMuted ? <LuVolumeX size={17} /> : <LuVolume2 size={17} />} label="Volume" onClick={onToggleMute}/>
-      <IconBtn icon={<LuMaximize2 size={17} />} label="Fullscreen" />
       {/* Drawer triggers — visible only on tablet/phone via CSS */}
       {onHints && (
         <IconBtn
@@ -37,10 +36,7 @@ export function FloatingLeft({ onHints, onStats, isMuted, onToggleMute}) {
 export function FloatingRight() {
   return (
     <div className={styles.right}>
-      <button className={styles.newStation} aria-label="Load new station">
-        <span>New Station</span>
-        <LuRefreshCw size={15} />
-      </button>
+        <IconBtn icon={<LuMaximize2 size={17} />} label="Fullscreen" />
     </div>
   );
 }

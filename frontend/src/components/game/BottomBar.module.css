@@ -93,6 +93,11 @@
   transform: scale(1.02);
 }
 
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* ════════════════════ Responsive ════════════════════ */
 
 /* Tablet: slightly tighter */

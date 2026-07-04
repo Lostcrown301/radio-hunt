@@ -64,14 +64,17 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
   }, []);
 
   const handlePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+      const audio = audioRef.current;
+      if (!audio) return;
 
-    try {
-      await audio.play();
-    } catch (err) {
-      console.error(err);
-    }
+      setStatus("connecting");
+
+      try {
+          await audio.play();
+      } catch (err) {
+          console.error(err);
+          setStatus("blocked");
+      }
   };
 
 

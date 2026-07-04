@@ -30,8 +30,8 @@
 
 /* Drawer trigger buttons hidden on desktop (sidebars are always visible) */
 /* nth-child 4 and 5 are the drawer triggers */
-.left > .btn:nth-child(4),
-.left > .btn:nth-child(5) {
+.left > .btn:nth-child(3),
+.left > .btn:nth-child(4) {
   display: none;
 }
 

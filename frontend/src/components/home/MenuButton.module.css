@@ -1,0 +1,56 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 320px;
+
+    cursor: pointer;
+
+    transition:
+        transform 200ms ease,
+        box-shadow 200ms ease,
+        border-color 200ms ease;
+}
+
+.button:hover {
+    transform: scale(1.03);
+
+    border-color: rgba(150, 100, 255, 0.5);
+
+    box-shadow:
+        0 0 20px rgba(150, 100, 255, 0.25);
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.content {
+    transition: transform 200ms ease;
+}
+
+.button:hover .content {
+    transform: scale(1.03);
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+}
+
+.label {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
