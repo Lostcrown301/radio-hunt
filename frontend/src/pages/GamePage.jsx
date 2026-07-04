@@ -13,6 +13,7 @@ import BottomBar               from "../components/game/BottomBar";
 import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
 import Drawer                  from "../components/ui/Drawer";
 import styles from "./GamePage.module.css";
+import HowToPlayModal from "../components/home/HowToPlayModal";
 
 import { fetchRandomStation, submitGuess } from "../services/radioService";
 
@@ -33,6 +34,8 @@ export default function GamePage() {
 
   const [game, setGame] = useState(null);
 
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
+
 //  const [message, setMessage] = useState("");
   const selectedCountryName = selectedCountry?.name || "Select a Country";
   // console.log("Selected Country:", selectedCountry);
@@ -42,6 +45,10 @@ export default function GamePage() {
 
   const audioRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
+
+  const handleHowToPlay = () => {
+      setHowToPlayOpen(true);
+  };
 
   const toggleMute = () => {
     if (!audioRef.current) return;
@@ -142,7 +149,7 @@ export default function GamePage() {
 
       {/* ── Main layout ── */}
       <GameLayout
-        header={<Header streak={7} score={2450} />}
+        header={<Header streak={7} score={2450} onHowToPlay={handleHowToPlay}/>}
 
         left={
           <>
@@ -224,6 +231,11 @@ export default function GamePage() {
             </div>
           </div>
         }
+      />
+
+      <HowToPlayModal
+          open={howToPlayOpen}
+          onClose={() => setHowToPlayOpen(false)}
       />
     </>
   );

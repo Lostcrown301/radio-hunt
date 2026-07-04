@@ -19,7 +19,7 @@ function PillStat({ icon, label, value, valueClass }) {
   );
 }
 
-export default function Header({ streak = 7, score = 2450 }) {
+export default function Header({ streak = 7, score = 2450, onHowToPlay}) {
   return (
     <motion.div
       className={styles.header}
@@ -29,7 +29,7 @@ export default function Header({ streak = 7, score = 2450 }) {
     >
       {/* ── Left: How to play ── */}
       <div className={styles.left}>
-        <button className={styles.howToPlay} aria-label="How to play">
+        <button className={styles.howToPlay} onClick={onHowToPlay} aria-label="How to play">
           <LuCircleHelp size={15} />
           <span className={styles.howToPlayText}>How to play</span>
         </button>
