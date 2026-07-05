@@ -6,6 +6,8 @@ import fs from "fs/promises";
 const resolve4 = util.promisify(dns.resolve4);
 const reverse = util.promisify(dns.reverse);
 
+const TIMEOUT = 10000;
+
 export async function fetchRandomStation() {
     const workingUrl = await getWorkingRadioBrowserUrl();
 
@@ -15,7 +17,7 @@ export async function fetchRandomStation() {
     const countriesResponse = await axios.get(
         `${workingUrl}/json/countries`,
         {
-            timeout: 10000,
+            timeout: TIMEOUT,
             headers: {
                 "User-Agent": "RadioHunt/1.0"
             }
@@ -44,7 +46,7 @@ export async function fetchRandomStation() {
     const stationsResponse = await axios.get(
         `${workingUrl}/json/stations/bycountry/${encodeURIComponent(country.name)}`,
         {   
-            timeout: 10000,
+            timeout: TIMEOUT,
             headers: {
                 "User-Agent": "RadioHunt/1.0"
             },
@@ -105,7 +107,7 @@ async function getWorkingRadioBrowserUrl() {
 //            console.log(host);
             await axios.get(`${host}/json/stations`,
                 {
-                    timeout: 10000,
+                    timeout: TIMEOUT,
                     headers: {
                         "User-Agent": "RadioHunt/1.0"
                     },
