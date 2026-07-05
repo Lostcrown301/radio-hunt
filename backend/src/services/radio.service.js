@@ -1,23 +1,25 @@
 // import dns from 'dns';
 // import util from 'util';
 import axios from 'axios';
-// import fs from "fs/promises";
+import fs from "fs/promises";
 
 // const resolve4 = util.promisify(dns.resolve4);
 // const reverse = util.promisify(dns.reverse);
 
 const TIMEOUT = 10000;
 
+let cachedCountries = null;
+
 const RADIO_BROWSER_URL = "https://de1.api.radio-browser.info";
 
-export async function fetchRandomStation() {
-    // const workingUrl = await getWorkingRadioBrowserUrl();
-    const workingUrl = RADIO_BROWSER_URL;
 
-    console.log(`using ${workingUrl}`);
+async function getCountries(workingUrl) {
+    if (cachedCountries !== null) {
+        console.log("Using cached countries.");
+        return cachedCountries;
+    }
 
-    // Get all countries
-    const countriesResponse = await axios.get(
+    const response = await axios.get(
         `${workingUrl}/json/countries`,
         {
             timeout: TIMEOUT,
@@ -27,30 +29,48 @@ export async function fetchRandomStation() {
         }
     );
 
-    const countries = countriesResponse.data;
+    cachedCountries = response.data.filter(
+        country => country.stationcount >= 30
+    );
+
+    console.log(`Cached ${cachedCountries.length} countries.`);
+
+    return cachedCountries;
+}
+
+async function writeIntoCountries(workingUrl) {
+    const countries = await getCountries(workingUrl);
+
+    await fs.writeFile(
+        "./src/constants/countries.json",
+        JSON.stringify(countries, null, 2)
+    );
+    console.log("Countries saved to ./src/constants/countries.json");
+    console.log("Countries:", countries);
+}
+
+export async function fetchRandomStation() {
+
+    // const workingUrl = await getWorkingRadioBrowserUrl();
+    const workingUrl = RADIO_BROWSER_URL;
 
     /* Uncomment the code below to update the countries list */
-
-    // await fs.writeFile(
-    //     "./src/constants/countries.json",
-    //     JSON.stringify(countries, null, 2)
-    // );
-    // console.log("Countries saved to ./src/constants/countries.json");
-    // console.log("Countries:", countries);
+    // await writeIntoCountries(workingUrl);
 
 
-    /* Valid countries are those with at 50 stations, to ensure we have a good chance of finding a station */
-    const validCountries = countries.filter(country => country.stationcount >= 30);
+    /* Valid countries are those with at 30 stations, to ensure we have a good chance of finding a station */
+    const validCountries = await getCountries(workingUrl);
 
+    for (let i = 0; i < 20; i++) {
+        const country = validCountries[
+            Math.floor(Math.random() * validCountries.length)
+        ];
 
-    for(let i = 0; i < 20; i++) {
-            // Pick random country
-            const country = validCountries[Math.floor(Math.random() * validCountries.length)];
+        try {
 
-            // Get stations from that country
             const stationsResponse = await axios.get(
                 `${workingUrl}/json/stations/bycountry/${encodeURIComponent(country.name)}`,
-                {   
+                {
                     timeout: TIMEOUT,
                     headers: {
                         "User-Agent": "RadioHunt/1.0"
@@ -63,6 +83,7 @@ export async function fetchRandomStation() {
 
             const playableStations = stationsResponse.data.filter((station) => {
                 const codec = station.codec?.toUpperCase();
+
                 return (
                     station.url_resolved &&
                     station.url_resolved.startsWith("https://") &&
@@ -76,12 +97,22 @@ export async function fetchRandomStation() {
                     `Country ${country.name}: ${stationsResponse.data.length} stations, ${playableStations.length} playable`
                 );
                 continue;
-                // throw new Error("No playable HTTPS stations found");
             }
+
             return playableStations[
                 Math.floor(Math.random() * playableStations.length)
             ];
+
+        } catch (err) {
+
+            console.log(
+                `Skipping ${country.name}: ${err.code || err.message}`
+            );
+
+            continue;
+        }
     }
+
     throw new Error("Couldn't find a playable station after trying 20 countries");
 }
 
