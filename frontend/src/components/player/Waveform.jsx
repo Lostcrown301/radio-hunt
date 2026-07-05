@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import styles from "./Waveform.module.css";
 
-export default function Waveform({ barCount = 60 }) {
+export default function Waveform({ barCount = 60, active=false }) {
   const bars = useMemo(
     () =>
       Array.from({ length: barCount }, (_, i) => ({
@@ -14,7 +14,11 @@ export default function Waveform({ barCount = 60 }) {
   );
 
   return (
-    <div className={styles.wrap} aria-label="Audio waveform" role="img">
+    <div
+      className={`${styles.wrap} ${active ? styles.active : styles.paused}`}
+      aria-label="Audio waveform"
+      role="img"
+    >
       {bars.map((b) => (
         <span
           key={b.id}

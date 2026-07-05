@@ -20,6 +20,14 @@
   animation: wave ease-in-out infinite alternate;
 }
 
+.active .bar {
+    animation-play-state: running;
+}
+
+.paused .bar {
+    animation-play-state: paused;
+}
+
 @keyframes wave {
   from { transform: scaleY(0.25); }
   to   { transform: scaleY(1); }

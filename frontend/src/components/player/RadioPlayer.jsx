@@ -14,14 +14,39 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
   const [status, setStatus] = useState("idle");
   const [hasStarted, setHasStarted] = useState(false);
   
+  // useEffect(() => {
+  //   if (!streamUrl || !audioRef.current) return;
+
+  //   setHasStarted(false);
+  //   setStatus("idle");
+
+  //   const audio = audioRef.current;
+
+  //   audio.pause();
+  //   audio.src = streamUrl;
+  //   audio.load();
+
+  //   const playAudio = async () => {
+  //     try {
+  //       await audio.play();
+  //     } catch (err) {
+  //       console.log("Autoplay blocked:", err);
+  //       setStatus("blocked");
+  //     }
+  //   };
+
+  //   playAudio();
+  // }, [streamUrl, audioRef]);
+
   useEffect(() => {
     if (!streamUrl || !audioRef.current) return;
+
+    const audio = audioRef.current;
 
     setHasStarted(false);
     setStatus("idle");
 
-    const audio = audioRef.current;
-
+    audio.pause();
     audio.src = streamUrl;
     audio.load();
 
@@ -35,7 +60,12 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
     };
 
     playAudio();
-  }, [streamUrl]);
+
+    return () => {
+      audio.pause();
+    };
+  }, [streamUrl, audioRef]);
+  
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -49,29 +79,36 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
       setStatus("playing");
       setHasStarted(true);
     };
+    const handlePause = () => setStatus("idle");
+    const handleEnded = () => setStatus("idle");
 
     audio.addEventListener("loadstart", handleLoadStart);
     audio.addEventListener("waiting", handleWaiting);
     audio.addEventListener("playing", handlePlaying);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("pause", handlePause);
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
       audio.removeEventListener("loadstart", handleLoadStart);
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("pause", handlePause);
+      audio.removeEventListener("ended", handleEnded);
     };
   }, []);
 
   const handlePlay = async () => {
       const audio = audioRef.current;
-      if (!audio) return;
+      if (!audio || !audio.paused) return;
 
       setStatus("connecting");
 
       try {
           await audio.play();
-      } catch (err) {
+      }
+      catch (err) {
           console.error(err);
           setStatus("blocked");
       }
@@ -117,7 +154,7 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
         </div>
 
         {/* Animated waveform */}
-        <Waveform barCount={60} />
+        <Waveform barCount={60} active={status === "playing"}/>
 
         {/* Progress bar + timestamps */}
         <div className={styles.progress}>
