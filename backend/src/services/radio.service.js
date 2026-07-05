@@ -54,14 +54,21 @@ export async function fetchRandomStation() {
         }
     );
 
-    const stations = stationsResponse.data;
+    const playableStations = stationsResponse.data.filter((station) => {
+        return (
+            station.url_resolved &&
+            station.url_resolved.startsWith("https://") &&
+            station.lastcheckok === 1
+        );
+    });
 
-    if (!stations.length) {
-        throw new Error("No stations found");
+    if (!playableStations.length) {
+        throw new Error("No playable HTTPS stations found");
     }
 
-    // Pick random station
-    return stations[Math.floor(Math.random() * stations.length)];
+    return playableStations[
+        Math.floor(Math.random() * playableStations.length)
+    ];
 }
 
 /**
