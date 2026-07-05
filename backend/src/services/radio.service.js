@@ -15,7 +15,7 @@ export async function fetchRandomStation() {
     const countriesResponse = await axios.get(
         `${workingUrl}/json/countries`,
         {
-            timeout: 5000,
+            timeout: 10000,
             headers: {
                 "User-Agent": "RadioHunt/1.0"
             }
@@ -44,7 +44,7 @@ export async function fetchRandomStation() {
     const stationsResponse = await axios.get(
         `${workingUrl}/json/stations/bycountry/${encodeURIComponent(country.name)}`,
         {   
-            timeout: 5000,
+            timeout: 10000,
             headers: {
                 "User-Agent": "RadioHunt/1.0"
             },
@@ -105,7 +105,7 @@ async function getWorkingRadioBrowserUrl() {
 //            console.log(host);
             await axios.get(`${host}/json/stations`,
                 {
-                    timeout: 5000,
+                    timeout: 10000,
                     headers: {
                         "User-Agent": "RadioHunt/1.0"
                     },
