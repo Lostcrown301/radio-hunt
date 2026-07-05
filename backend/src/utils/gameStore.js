@@ -13,6 +13,21 @@ export function getGame(gameId) {
     return activeGames.get(gameId);
 }
 
+export function updateGame(gameId, updates) {
+    const game = activeGames.get(gameId);
+
+    if (!game) return null;
+
+    const updatedGame = {
+        ...game,
+        ...updates,
+    };
+
+    activeGames.set(gameId, updatedGame);
+
+    return updatedGame;
+}
+
 export function deleteGame(gameId) {
     activeGames.delete(gameId);
 }

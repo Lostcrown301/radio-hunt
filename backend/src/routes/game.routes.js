@@ -1,10 +1,10 @@
 import express from "express";
-import { checkGuess, getRandomStation } from "../controllers/game.controller.js";
+import { checkGuess, startGame } from "../controllers/game.controller.js";
 
 const router = express.Router();
 
 
-router.get("/random", getRandomStation);
+router.get("/start", startGame);
 router.post("/guess", checkGuess);
 
 export default router;

@@ -1,38 +1,85 @@
 import crypto from "crypto";
 import { fetchRandomStation } from "../services/radio.service.js";
-import { createGame, getGame, deleteGame } from "../utils/gameStore.js";
+import { createGame, getGame, updateGame, deleteGame } from "../utils/gameStore.js";
 import { createOptions } from "../utils/createOptions.js"
 import { normalizeCountry } from "../utils/normalizeCountry.js"
+import { MAX_ROUNDS } from "../constants/game.constants.js";
 
-export const getRandomStation = async (req, res) => {
-    
-    // console.log("Random endpoint hit");
-    
-    try {
+
+async function prepareNextStation() {
+        // Fetch a new station
         const stationData = await fetchRandomStation();
 
+        // Normalize country
         const normalizedCountry = normalizeCountry(stationData.country);
-        // res.json(stationData);
-        const gameId = crypto.randomUUID();
 
+        // Create options
         const options = createOptions(normalizedCountry);
+
+        return {
+            stationData,
+            normalizedCountry,
+            options,
+        };
+}
+
+function startNewGame(stationData, normalizedCountry) {
+    const gameId = crypto.randomUUID();
 
         createGame(gameId, {
             score: 0,
             streak: 0,
             currentRound: 1,
-            maxRounds: 10,
             currentStation: {
                 country: normalizedCountry,
                 stationUuid: stationData.stationuuid
             }
         });
 
+        return gameId;
+}
+
+async function advanceToNextRound(gameId, game) {
+
+    const { stationData, normalizedCountry, options } = await prepareNextStation();
+
+    // Update currentRound
+    const updatedGame = updateGame(gameId, {
+        currentRound: game.currentRound + 1,
+        currentStation: {
+            country: normalizedCountry,
+            stationUuid: stationData.stationuuid,
+        },
+    });
+
+    // Update score
+    // Update streak
+
+    // Update currentStation
+    // Return the next station data
+    return {
+        streamUrl: stationData.url_resolved,
+        stationName: stationData.name,
+        options,
+        currentRound: updatedGame.currentRound,
+    };
+}
+
+export const startGame = async (req, res) => {
+    
+    // console.log("Start endpoint hit");
+
+    try {
+        const { stationData, normalizedCountry, options } = await prepareNextStation();
+        // res.json(stationData);
+
         // console.log(gameID);
         // console.log(stationData.country);
         // res.json({gameID: gameID,
         //     data: stationData
         // });
+
+        const gameId = startNewGame(stationData, normalizedCountry);
 
         res.json({
             gameId: gameId,
@@ -44,7 +91,7 @@ export const getRandomStation = async (req, res) => {
     }
     catch (error) {
         console.error(error)
-        res.status(500).json({ error: 'Failed to fetch random station' });
+        res.status(500).json({ error: 'Failed to start game' });
     }
 }
 
@@ -67,14 +114,27 @@ export const checkGuess = async (req, res) => {
             });
         }
 
-        console.log(game);
+        // console.log(game);
         const correct = game.currentStation.country.trim().toLowerCase() === country.trim().toLowerCase();
 
-        deleteGame(gameId);
+
+        if (game.currentRound >= MAX_ROUNDS) {
+            deleteGame(gameId);
+
+            return res.json({
+                correct,
+                correctCountry: game.currentStation.country,
+                gameOver: true,
+            });
+        }
+
+        const nextStation = await advanceToNextRound(gameId, game);
 
         res.json({
             correct,
-            correctCountry: game.currentStation.country
+            correctCountry: game.currentStation.country,
+            gameOver: false,
+            ...nextStation,
         });
     }
     catch(error) {

@@ -1,83 +1,71 @@
-import { useState, useCallback, useEffect } from "react";
-import Background              from "../components/background/Background";
-import GameLayout              from "../components/layout/GameLayout";
-import Header                  from "../components/layout/Header";
-import HintsCard               from "../components/game/HintsCard";
-import PreviousGuesses         from "../components/game/PreviousGuesses";
-import RadioPlayer             from "../components/player/RadioPlayer";
-import WorldMap                from "../components/map/WorldMap";
-import TimerCard               from "../components/game/TimerCard";
-import StreakCard              from "../components/game/StreakCard";
-import ScoreCard               from "../components/game/ScoreCard";
-import BottomBar               from "../components/game/BottomBar";
+import { useState, useCallback, useEffect, useRef } from "react";
+import Background from "../components/background/Background";
+import GameLayout from "../components/layout/GameLayout";
+import Header from "../components/layout/Header";
+import HintsCard from "../components/game/HintsCard";
+import PreviousGuesses from "../components/game/PreviousGuesses";
+import RadioPlayer from "../components/player/RadioPlayer";
+import WorldMap from "../components/map/WorldMap";
+import TimerCard from "../components/game/TimerCard";
+import StreakCard from "../components/game/StreakCard";
+import ScoreCard from "../components/game/ScoreCard";
+import BottomBar from "../components/game/BottomBar";
+import Drawer from "../components/ui/Drawer";
 import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
-import Drawer                  from "../components/ui/Drawer";
-import styles from "./GamePage.module.css";
 import HowToPlayModal from "../components/home/HowToPlayModal";
 
-import { fetchRandomStation, submitGuess } from "../services/radioService";
+import { startGame, submitGuess } from "../services/radioService";
 
-import { useRef } from "react";
-
+import styles from "./GamePage.module.css";
 
 export default function GamePage() {
-  const [hintsOpen,  setHintsOpen]  = useState(false);
-  const [statsOpen,  setStatsOpen]  = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(null);
 
+  // Drawer state
+  const [hintsOpen, setHintsOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
+
+  // Game state
+  const [game, setGame] = useState(null);
+  const [nextRound, setNextRound] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
   const [correctCountry, setCorrectCountry] = useState(null);
   const [guessResult, setGuessResult] = useState(null);
 
   const [interactionLocked, setInteractionLocked] = useState(false);
-
   const [roundFinished, setRoundFinished] = useState(false);
 
-  const [game, setGame] = useState(null);
-
-  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
-
-//  const [message, setMessage] = useState("");
-  const selectedCountryName = selectedCountry?.name || "Select a Country";
-  // console.log("Selected Country:", selectedCountry);
-
-  const openHints = useCallback(() => setHintsOpen(true),  []);
-  const openStats = useCallback(() => setStatsOpen(true),  []);
-
+  // Audio
   const audioRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
 
-  const handleHowToPlay = () => {
-      setHowToPlayOpen(true);
-  };
+  const selectedCountryName =
+    selectedCountry?.name || "Select a Country";
 
-  const toggleMute = () => {
-    if (!audioRef.current) return;
+  const openHints = useCallback(() => setHintsOpen(true), []);
+  const openStats = useCallback(() => setStatsOpen(true), []);
 
-    audioRef.current.muted = !audioRef.current.muted;
-    setIsMuted(audioRef.current.muted);
-  };
-
-    const loadGame = useCallback(async () => {
-      try {
-          const data = await fetchRandomStation();
-
-          setGame(data);
-          //console.log("Loaded game:", data);
-      
-          // Reset UI for next round
-          setSelectedCountry(null);
-          setCorrectCountry(null);
-          setGuessResult(null);
-          setInteractionLocked(false);
-          setRoundFinished(false);
-
-      }
-      catch (err) {
-          console.error(err);
-      }
+  const resetRoundUI = useCallback(() => {
+    setSelectedCountry(null);
+    setCorrectCountry(null);
+    setGuessResult(null);
+    setInteractionLocked(false);
+    setRoundFinished(false);
   }, []);
 
-  
+  const loadGame = useCallback(async () => {
+    try {
+      const data = await startGame();
+
+      setGame(data);
+      setNextRound(null);
+      resetRoundUI();
+    }
+    catch (err) {
+      console.error(err);
+    }
+  }, [resetRoundUI]);
+
   useEffect(() => {
     loadGame();
   }, [loadGame]);
@@ -92,7 +80,7 @@ export default function GamePage() {
       console.log("Game not loaded");
       return;
     }
-    
+
     setInteractionLocked(true);
 
     try {
@@ -100,32 +88,55 @@ export default function GamePage() {
         game.gameId,
         selectedCountry.name
       );
+
       setCorrectCountry(result.correctCountry);
       setGuessResult(result.correct ? "correct" : "wrong");
-
       setRoundFinished(true);
 
+      if (result.gameOver) {
+        //setGameOver(true);
+        console.log("Game Over");
+        return;
+      }
 
-      console.log(result);
-    } catch (err) {
+      setNextRound(result);
+    }
+    catch (err) {
       console.error(err);
       setInteractionLocked(false);
     }
   };
 
-  const handleSkip = async () => {
+  const handleNextStation = () => {
+      if (!nextRound) return;
+
+      setGame((prev) => ({
+          ...prev,
+          streamUrl: nextRound.streamUrl,
+          stationName: nextRound.stationName,
+          options: nextRound.options,
+          currentRound: nextRound.currentRound,
+      }));
+
+      setNextRound(null);
+      resetRoundUI();
+  };
+
+  const handleSkip = () => {
     console.log("Skip");
   };
 
-  const handleNextStation = () => {
-      loadGame();
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+
+    audioRef.current.muted = !audioRef.current.muted;
+    setIsMuted(audioRef.current.muted);
   };
 
   return (
     <>
       <Background />
 
-      {/* ── Sidebar drawers (tablet / phone) ── */}
       <Drawer
         open={hintsOpen}
         onClose={() => setHintsOpen(false)}
@@ -147,32 +158,38 @@ export default function GamePage() {
         <ScoreCard score={2450} />
       </Drawer>
 
-      {/* ── Main layout ── */}
       <GameLayout
-        header={<Header streak={7} score={2450} onHowToPlay={handleHowToPlay}/>}
-
+        header={
+          <Header
+            streak={7}
+            score={2450}
+            onHowToPlay={() => setHowToPlayOpen(true)}
+          />
+        }
         left={
           <>
             <HintsCard />
             <PreviousGuesses />
           </>
         }
-
         center={
           <>
-            <RadioPlayer stationName={game?.stationName} streamUrl={game?.streamUrl} audioRef={audioRef}/>
+            <RadioPlayer
+              stationName={game?.stationName}
+              streamUrl={game?.streamUrl}
+              audioRef={audioRef}
+            />
+
             <WorldMap
-            options={game?.options || []}
-            selectedCountry={selectedCountry}
-            onCountrySelect={setSelectedCountry}
-            guessResult={guessResult}
-            correctCountry={correctCountry}
-            interactionLocked={interactionLocked}
-//            onInvalidSelection={() => setMessage("Select one of the highlighted countries")}
+              options={game?.options || []}
+              selectedCountry={selectedCountry}
+              onCountrySelect={setSelectedCountry}
+              guessResult={guessResult}
+              correctCountry={correctCountry}
+              interactionLocked={interactionLocked}
             />
           </>
         }
-
         right={
           <>
             <TimerCard timeLeft="00:45" />
@@ -180,7 +197,6 @@ export default function GamePage() {
             <ScoreCard score={2450} />
           </>
         }
-
         bottom={
           <div className={styles.bottomRow}>
             <FloatingLeft
@@ -189,42 +205,37 @@ export default function GamePage() {
               isMuted={isMuted}
               onToggleMute={toggleMute}
             />
+
             <BottomBar
-                selectedCountry={selectedCountryName}
-                onSubmit={handleSubmitGuess}
-                onNextStation={handleNextStation}
-                onSkip={handleSkip}
-                roundFinished={roundFinished}
+              selectedCountry={selectedCountryName}
+              onSubmit={handleSubmitGuess}
+              onNextStation={handleNextStation}
+              onSkip={handleSkip}
+              roundFinished={roundFinished}
             />
+
             <FloatingRight />
           </div>
         }
-
         phoneContent={
           <div className={styles.phoneScroll}>
-            {/* Timer + Streak + Score row */}
             <div className={styles.phoneStatsRow}>
               <TimerCard timeLeft="00:45" />
               <StreakCard streak={7} />
               <ScoreCard score={2450} />
             </div>
 
-            {/* Hints */}
             <HintsCard />
-
-            {/* Previous Guesses */}
             <PreviousGuesses />
 
-            {/* Bottom actions */}
             <BottomBar
-                selectedCountry={selectedCountryName}
-                onSubmit={handleSubmitGuess}
-                onNextStation={handleNextStation}
-                onSkip={handleSkip}
-                roundFinished={roundFinished}
+              selectedCountry={selectedCountryName}
+              onSubmit={handleSubmitGuess}
+              onNextStation={handleNextStation}
+              onSkip={handleSkip}
+              roundFinished={roundFinished}
             />
 
-            {/* Floating controls row */}
             <div className={styles.phoneFabs}>
               <FloatingLeft />
               <FloatingRight />
@@ -234,8 +245,8 @@ export default function GamePage() {
       />
 
       <HowToPlayModal
-          open={howToPlayOpen}
-          onClose={() => setHowToPlayOpen(false)}
+        open={howToPlayOpen}
+        onClose={() => setHowToPlayOpen(false)}
       />
     </>
   );
