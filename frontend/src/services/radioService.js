@@ -13,3 +13,8 @@ export const submitGuess = async (gameId, country) => {
 
     return response.data;
 };
+
+export const getGameResults = async (gameId) => {
+    const response = await api.get(`/api/games/${gameId}/results`);
+    return response.data;
+};

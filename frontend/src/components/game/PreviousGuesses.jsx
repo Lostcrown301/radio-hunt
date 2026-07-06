@@ -21,34 +21,38 @@ export default function PreviousGuesses({ guesses = [] }) {
       </div>
 
       <ul className={styles.list}>
-        {guesses.map((guess, index) => (
-          <li key={index} className={styles.item}>
-            <span
-              className={styles.flag}
-              aria-label={guess.country}
-            >
-              {countryCodeMap[guess.country] ?? "--"}
-            </span>
+        {guesses.map((guess, index) => {
+          const countryName = guess.guessedCountry || guess.country;
 
-            <span className={styles.name}>
-              {guess.country}
-            </span>
+          return (
+            <li key={index} className={styles.item}>
+              <span
+                className={styles.flag}
+                aria-label={countryName}
+              >
+                {countryCodeMap[countryName] ?? "--"}
+              </span>
 
-            {guess.correct ? (
-              <IoCheckmark
-                size={16}
-                className={styles.correctIcon}
-                aria-label="Correct guess"
-              />
-            ) : (
-              <IoClose
-                size={16}
-                className={styles.xIcon}
-                aria-label="Wrong guess"
-              />
-            )}
-          </li>
-        ))}
+              <span className={styles.name}>
+                {countryName}
+              </span>
+
+              {guess.correct ? (
+                <IoCheckmark
+                  size={16}
+                  className={styles.correctIcon}
+                  aria-label="Correct guess"
+                />
+              ) : (
+                <IoClose
+                  size={16}
+                  className={styles.xIcon}
+                  aria-label="Wrong guess"
+                />
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       <div className={styles.footer}>

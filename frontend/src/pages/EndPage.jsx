@@ -1,54 +1,87 @@
-import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Background              from "../components/background/Background";
-import HomeLayout from "../components/layout/HomeLayout";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import Background from "../components/background/Background";
 import Logo from "../components/layout/Logo";
-import MainMenu from "../components/home/MainMenu";
-import HowToPlayModal from "../components/home/HowToPlayModal";
-import SettingsModal from "../components/home/SettingsModal";
+import EndMenu from "../components/home/EndMenu";
+import EndLayout from "../components/layout/EndLayout";
+import { getGameResults } from "../services/radioService";
 
 export default function EndPage() {
 
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const gameId = searchParams.get("gameId");
+    const [results, setResults] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const [howToPlayOpen, setHowToPlayOpen] = useState(false);
-    const [settingsOpen, setSettingsOpen] = useState(false);
+    useEffect(() => {
+        let active = true;
 
-    const handleStart = () => {
+        const loadResults = async () => {
+            if (!gameId) {
+                setError("Game results are unavailable.");
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError("");
+                const data = await getGameResults(gameId);
+
+                if (active) {
+                    setResults(data);
+                }
+            }
+            catch (err) {
+                if (active) {
+                    setError(
+                        err.response?.status === 404
+                            ? "Game results have expired or could not be found."
+                            : err.response?.status === 409
+                            ? "Game results are available after the game is complete."
+                            : "Failed to load game results."
+                    );
+                }
+            }
+            finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadResults();
+
+        return () => {
+            active = false;
+        };
+    }, [gameId]);
+
+    const handleRestart = () => {
         navigate("/game");
     };
 
-    const handleHowToPlay = () => {
-//        console.log("How To Play clicked");
-        setHowToPlayOpen(true);
-    };
-
-    const handleSettings = () => {
-        setSettingsOpen(true);
-    };
+    const handleExit = () => {
+        navigate("/");
+    }
 
 
     return(
         <>
             <Background />
-            <HomeLayout
+            <EndLayout
                 header={<Logo />}
                 center={
-                    <MainMenu
-                        onStart={handleStart}
-                        onHowToPlay={handleHowToPlay}
-                        onSettings={handleSettings}
+                    <EndMenu
+                        onRestart={handleRestart}
+                        onExit={handleExit}
+                        previousGuesses={results?.previousGuesses || []}
+                        previousGuessesLoading={loading}
+                        previousGuessesError={error}
                     />
                 }
-            />
-
-            <HowToPlayModal
-                open={howToPlayOpen}
-                onClose={() => setHowToPlayOpen(false)}
-            />
-            <SettingsModal
-                open={settingsOpen}
-                onClose={() => setSettingsOpen(false)}
             />
         </>
     )

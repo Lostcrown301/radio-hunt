@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Background from "../components/background/Background";
 import GameLayout from "../components/layout/GameLayout";
 import Header from "../components/layout/Header";
@@ -20,6 +21,8 @@ import styles from "./GamePage.module.css";
 
 export default function GamePage() {
 
+  const navigate = useNavigate();
+
   // Drawer state
   const [hintsOpen, setHintsOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
@@ -36,14 +39,13 @@ export default function GamePage() {
   const [roundFinished, setRoundFinished] = useState(false);
   const [gameOver, setGameOver] = useState(false);
 
-  const [previousGuesses, setPreviousGuesses] = useState([]);
-
   // Audio
   const audioRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
 
   const selectedCountryName =
     selectedCountry?.name || "Select a Country";
+  const previousGuesses = game?.previousGuesses || [];
 
   const openHints = useCallback(() => setHintsOpen(true), []);
   const openStats = useCallback(() => setStatsOpen(true), []);
@@ -63,7 +65,6 @@ export default function GamePage() {
       setGame(data);
       setNextRound(null);
       resetRoundUI();
-      setPreviousGuesses([]);
       setGameOver(false);
     }
     catch (err) {
@@ -100,15 +101,10 @@ export default function GamePage() {
       setGuessResult(result.correct ? "correct" : "wrong");
       setRoundFinished(true);
       setGameOver(result.gameOver);
-
-
-      setPreviousGuesses((prev) => [
+      setGame((prev) => ({
           ...prev,
-          {
-              country: selectedCountry.name,
-              correct: result.correct,
-          },
-      ]);
+          previousGuesses: result.previousGuesses || prev?.previousGuesses || [],
+      }));
 
       if (result.gameOver) {
         console.log("Game Over");
@@ -143,7 +139,9 @@ export default function GamePage() {
   };
 
   const handleViewResults = () => {
-      console.log("View Results");
+      if (!game?.gameId) return;
+
+      navigate(`/results?gameId=${encodeURIComponent(game.gameId)}`);
   };
 
   const toggleMute = () => {

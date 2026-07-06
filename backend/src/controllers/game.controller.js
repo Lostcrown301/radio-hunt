@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { fetchRandomStation } from "../services/radio.service.js";
-import { createGame, getGame, updateGame, deleteGame } from "../utils/gameStore.js";
+import { createGame, getGame, updateGame } from "../utils/gameStore.js";
 import { createOptions } from "../utils/createOptions.js"
 import { normalizeCountry } from "../utils/normalizeCountry.js"
 import { MAX_ROUNDS } from "../constants/game.constants.js";
@@ -30,6 +30,8 @@ function startNewGame(stationData, normalizedCountry) {
             score: 0,
             streak: 0,
             currentRound: 1,
+            previousGuesses: [],
+            completed: false,
             currentStation: {
                 country: normalizedCountry,
                 stationUuid: stationData.stationuuid
@@ -85,7 +87,8 @@ export const startGame = async (req, res) => {
             gameId: gameId,
             streamUrl: stationData.url_resolved,
             stationName: stationData.name,
-            options: options
+            options: options,
+            previousGuesses: [],
         })
         
     }
@@ -116,16 +119,34 @@ export const checkGuess = async (req, res) => {
 
         // console.log(game);
         const correct = game.currentStation.country.trim().toLowerCase() === country.trim().toLowerCase();
+        const guess = {
+            guessedCountry: country,
+            correctCountry: game.currentStation.country,
+            correct,
+        };
+
+        const previousGuesses = [
+            ...(game.previousGuesses || []),
+            guess,
+        ];
+
+        updateGame(gameId, {
+            previousGuesses,
+        });
 
 
         if (game.currentRound >= MAX_ROUNDS) {
-            deleteGame(gameId);
+            updateGame(gameId, {
+                completed: true,
+                completedAt: Date.now(),
+            });
 
             return res.json({
                 correct,
                 correctCountry: game.currentStation.country,
                 currentRound: game.currentRound,
                 gameOver: true,
+                previousGuesses,
             });
         }
 
@@ -135,6 +156,7 @@ export const checkGuess = async (req, res) => {
             correct,
             correctCountry: game.currentStation.country,
             gameOver: false,
+            previousGuesses,
             ...nextStation,
         });
     }
@@ -143,5 +165,41 @@ export const checkGuess = async (req, res) => {
         res.status(500).json({
             message: "Failed to check guess"
         })
+    }
+}
+
+export const getGameResults = async (req, res) => {
+    try {
+        const { gameId } = req.params;
+
+        if (!gameId) {
+            return res.status(400).json({
+                message: "gameId is required"
+            });
+        }
+
+        const game = getGame(gameId);
+
+        if (!game) {
+            return res.status(404).json({
+                message: "Game results not found"
+            });
+        }
+
+        if (!game.completed) {
+            return res.status(409).json({
+                message: "Game is not complete yet"
+            });
+        }
+
+        return res.json({
+            previousGuesses: game.previousGuesses || [],
+        });
+    }
+    catch(error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Failed to fetch game results"
+        });
     }
 }

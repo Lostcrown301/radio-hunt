@@ -1,0 +1,94 @@
+.card {
+  width: min(420px, calc(100vw - 28px));
+  padding: 14px 14px 12px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.headingText {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--c-muted);
+  text-transform: uppercase;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.message {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-muted);
+  line-height: 1.4;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 24px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.country {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+}
+
+.result {
+  justify-self: end;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+
+.correctIcon {
+  color: var(--c-green);
+  flex-shrink: 0;
+}
+
+.wrongIcon {
+  color: var(--c-red);
+  flex-shrink: 0;
+}
+
+@media (max-width: 575px) and (orientation: portrait) {
+  .card {
+    padding: 12px;
+  }
+
+  .item {
+    grid-template-columns: 18px minmax(0, 1fr);
+    row-gap: 2px;
+  }
+
+  .result {
+    grid-column: 2;
+    font-size: 12px;
+  }
+}
