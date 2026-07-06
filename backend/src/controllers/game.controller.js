@@ -124,6 +124,7 @@ export const checkGuess = async (req, res) => {
             return res.json({
                 correct,
                 correctCountry: game.currentStation.country,
+                currentRound: game.currentRound,
                 gameOver: true,
             });
         }

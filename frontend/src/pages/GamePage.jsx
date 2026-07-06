@@ -34,6 +34,7 @@ export default function GamePage() {
 
   const [interactionLocked, setInteractionLocked] = useState(false);
   const [roundFinished, setRoundFinished] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   const [previousGuesses, setPreviousGuesses] = useState([]);
 
@@ -63,6 +64,7 @@ export default function GamePage() {
       setNextRound(null);
       resetRoundUI();
       setPreviousGuesses([]);
+      setGameOver(false);
     }
     catch (err) {
       console.error(err);
@@ -91,12 +93,13 @@ export default function GamePage() {
     try {
       const result = await submitGuess(
         game.gameId,
-        selectedCountry.name
+        selectedCountry.name,
       );
 
       setCorrectCountry(result.correctCountry);
       setGuessResult(result.correct ? "correct" : "wrong");
       setRoundFinished(true);
+      setGameOver(result.gameOver);
 
 
       setPreviousGuesses((prev) => [
@@ -108,7 +111,6 @@ export default function GamePage() {
       ]);
 
       if (result.gameOver) {
-        //setGameOver(true);
         console.log("Game Over");
         return;
       }
@@ -138,6 +140,10 @@ export default function GamePage() {
 
   const handleSkip = () => {
     console.log("Skip");
+  };
+
+  const handleViewResults = () => {
+      console.log("View Results");
   };
 
   const toggleMute = () => {
@@ -230,6 +236,8 @@ export default function GamePage() {
               onNextStation={handleNextStation}
               onSkip={handleSkip}
               roundFinished={roundFinished}
+              gameOver={gameOver}
+              onViewResults={handleViewResults}
             />
 
             <FloatingRight />
@@ -254,6 +262,8 @@ export default function GamePage() {
               onNextStation={handleNextStation}
               onSkip={handleSkip}
               roundFinished={roundFinished}
+              gameOver={gameOver}
+              onViewResults={handleViewResults}
             />
 
             <div className={styles.phoneFabs}>

@@ -9,6 +9,8 @@ export default function BottomBar({
     onNextStation,
     onSkip,
     roundFinished,
+    gameOver,
+    onViewResults
 }) {
   return (
     <div className={styles.bar}>
@@ -22,7 +24,7 @@ export default function BottomBar({
       </div>
 
       {/* Submit Guess */}
-      <button
+      {/* <button
         className={styles.submit}
         onClick={roundFinished ? onNextStation : onSubmit}
         aria-label={roundFinished ? "Next station" : "Submit guess"}
@@ -38,6 +40,40 @@ export default function BottomBar({
             <IoSendSharp size={16} />
           </>
         )}
+      </button> */}
+      <button
+          className={styles.submit}
+          onClick={
+              !roundFinished
+                  ? onSubmit
+                  : gameOver
+                  ? onViewResults
+                  : onNextStation
+          }
+          aria-label={
+              !roundFinished
+                  ? "Submit guess"
+                  : gameOver
+                  ? "View results"
+                  : "Next station"
+          }
+      >
+          {!roundFinished ? (
+              <>
+                  <span>Submit Guess</span>
+                  <IoSendSharp size={16} />
+              </>
+          ) : gameOver ? (
+              <>
+                  <span>View Results</span>
+                  <TbPlayerSkipForward size={16} />
+              </>
+          ) : (
+              <>
+                  <span>Next Station</span>
+                  <TbPlayerSkipForward size={16} />
+              </>
+          )}
       </button>
 
       {/* Skip */}
