@@ -54,3 +54,15 @@
     font-weight: 600;
     letter-spacing: 0.02em;
 }
+
+@media (max-width: 575px) {
+    .button {
+        max-width: min(320px, calc(100vw - 24px));
+        min-height: 52px;
+        padding: 14px 18px;
+    }
+
+    .label {
+        font-size: 0.95rem;
+    }
+}

@@ -35,3 +35,9 @@
   .card  { padding: 10px 10px 8px; }
   .value { font-size: 26px; }
 }
+
+@media (max-width: 380px) and (orientation: portrait) {
+  .card  { padding: 9px 7px; }
+  .label { font-size: 10px; }
+  .value { font-size: 22px; }
+}

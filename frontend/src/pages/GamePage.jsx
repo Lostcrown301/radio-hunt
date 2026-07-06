@@ -19,6 +19,10 @@ import { startGame, submitGuess } from "../services/radioService";
 
 import styles from "./GamePage.module.css";
 
+const ROUND_SECONDS = 45;
+const FEEDBACK_DELAY_MS = 5000;
+const UNANSWERED_GUESS = "No answer";
+
 export default function GamePage() {
 
   const navigate = useNavigate();
@@ -38,9 +42,15 @@ export default function GamePage() {
   const [interactionLocked, setInteractionLocked] = useState(false);
   const [roundFinished, setRoundFinished] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS);
+  const [feedbackLocked, setFeedbackLocked] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackTimeLeft, setFeedbackTimeLeft] = useState(5);
 
   // Audio
   const audioRef = useRef(null);
+  const feedbackTimerRef = useRef(null);
+  const submissionInFlightRef = useRef(false);
   const [isMuted, setIsMuted] = useState(false);
 
   const selectedCountryName =
@@ -50,16 +60,30 @@ export default function GamePage() {
   const openHints = useCallback(() => setHintsOpen(true), []);
   const openStats = useCallback(() => setStatsOpen(true), []);
 
+  const clearFeedbackTimer = useCallback(() => {
+    if (feedbackTimerRef.current) {
+      clearInterval(feedbackTimerRef.current);
+      feedbackTimerRef.current = null;
+    }
+  }, []);
+
   const resetRoundUI = useCallback(() => {
+    clearFeedbackTimer();
     setSelectedCountry(null);
     setCorrectCountry(null);
     setGuessResult(null);
     setInteractionLocked(false);
     setRoundFinished(false);
-  }, []);
+    setFeedbackLocked(false);
+    setIsSubmitting(false);
+    setTimeLeft(ROUND_SECONDS);
+    setFeedbackTimeLeft(5);
+    submissionInFlightRef.current = false;
+  }, [clearFeedbackTimer]);
 
   const loadGame = useCallback(async () => {
     try {
+      clearFeedbackTimer();
       const data = await startGame();
 
       setGame(data);
@@ -70,31 +94,53 @@ export default function GamePage() {
     catch (err) {
       console.error(err);
     }
-  }, [resetRoundUI]);
+  }, [clearFeedbackTimer, resetRoundUI]);
 
   useEffect(() => {
     loadGame();
   }, [loadGame]);
 
-  const handleSubmitGuess = async () => {
-    if (!selectedCountry) {
+  useEffect(() => {
+    return () => {
+      clearFeedbackTimer();
+      submissionInFlightRef.current = false;
+    };
+  }, [clearFeedbackTimer]);
+
+  const applyNextRound = useCallback((roundData) => {
+    if (!roundData) return;
+
+    setGame((prev) => ({
+        ...prev,
+        streamUrl: roundData.streamUrl,
+        stationName: roundData.stationName,
+        options: roundData.options,
+        currentRound: roundData.currentRound,
+        previousGuesses: roundData.previousGuesses || prev?.previousGuesses || [],
+    }));
+
+    setNextRound(null);
+    resetRoundUI();
+  }, [resetRoundUI]);
+
+  const submitCurrentGuess = useCallback(async (guessCountry) => {
+    if (!guessCountry) {
       console.log("Select a country first");
       return;
     }
 
-    if (!game) {
-      console.log("Game not loaded");
+    if (!game || submissionInFlightRef.current || roundFinished || feedbackLocked) {
       return;
     }
 
-    // console.log(selectedCountry);
-
+    submissionInFlightRef.current = true;
+    setIsSubmitting(true);
     setInteractionLocked(true);
 
     try {
       const result = await submitGuess(
         game.gameId,
-        selectedCountry.name,
+        guessCountry,
       );
 
       setCorrectCountry(result.correctCountry);
@@ -105,33 +151,107 @@ export default function GamePage() {
           ...prev,
           previousGuesses: result.previousGuesses || prev?.previousGuesses || [],
       }));
+      setNextRound(result.gameOver ? null : result);
 
       if (result.gameOver) {
+        setFeedbackLocked(false);
+        setIsSubmitting(false);
+        submissionInFlightRef.current = false;
         console.log("Game Over");
         return;
       }
 
-      setNextRound(result);
+      setFeedbackTimeLeft(5);
+      setFeedbackLocked(true);
+      setIsSubmitting(false);
+      submissionInFlightRef.current = false;
     }
     catch (err) {
       console.error(err);
+      submissionInFlightRef.current = false;
+      setIsSubmitting(false);
       setInteractionLocked(false);
     }
+  }, [feedbackLocked, game, roundFinished]);
+
+  useEffect(() => {
+    if (!game || interactionLocked || roundFinished || gameOver) return;
+
+    const timerId = setInterval(() => {
+      setTimeLeft((current) => Math.max(current - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [game, gameOver, interactionLocked, roundFinished]);
+
+  useEffect(() => {
+    if (timeLeft > 0 || roundFinished || gameOver) return;
+
+    submitCurrentGuess(UNANSWERED_GUESS);
+  }, [gameOver, roundFinished, submitCurrentGuess, timeLeft]);
+
+  useEffect(() => {
+    if (!feedbackLocked) {
+      clearFeedbackTimer();
+      setFeedbackTimeLeft(5);
+      return;
+    }
+
+    clearFeedbackTimer();
+    setFeedbackTimeLeft(5);
+
+    feedbackTimerRef.current = window.setInterval(() => {
+      setFeedbackTimeLeft((current) => {
+        if (current <= 1) {
+          clearFeedbackTimer();
+          return 0;
+        }
+
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearFeedbackTimer();
+    };
+  }, [clearFeedbackTimer, feedbackLocked]);
+
+  useEffect(() => {
+    if (!feedbackLocked || feedbackTimeLeft > 0) return;
+
+    clearFeedbackTimer();
+
+    if (gameOver) {
+      submissionInFlightRef.current = false;
+      setInteractionLocked(true);
+      setFeedbackLocked(false);
+      setRoundFinished(true);
+      return;
+    }
+
+    if (nextRound) {
+      applyNextRound(nextRound);
+      return;
+    }
+
+    setFeedbackLocked(false);
+    setInteractionLocked(false);
+  }, [applyNextRound, clearFeedbackTimer, feedbackLocked, feedbackTimeLeft, gameOver, nextRound]);
+
+  const handleSubmitGuess = () => {
+    if (!selectedCountry) {
+      console.log("Select a country first");
+      return;
+    }
+
+    submitCurrentGuess(selectedCountry.name);
   };
 
   const handleNextStation = () => {
+      if (feedbackLocked) return;
       if (!nextRound) return;
 
-      setGame((prev) => ({
-          ...prev,
-          streamUrl: nextRound.streamUrl,
-          stationName: nextRound.stationName,
-          options: nextRound.options,
-          currentRound: nextRound.currentRound
-      }));
-
-      setNextRound(null);
-      resetRoundUI();
+      applyNextRound(nextRound);
   };
 
   const handleSkip = () => {
@@ -140,6 +260,7 @@ export default function GamePage() {
 
   const handleViewResults = () => {
       if (!game?.gameId) return;
+      if (feedbackLocked) return;
 
       navigate(`/results?gameId=${encodeURIComponent(game.gameId)}`);
   };
@@ -173,7 +294,12 @@ export default function GamePage() {
         side="right"
         title="Stats"
       >
-        <TimerCard timeLeft="00:45" />
+        <TimerCard
+          secondsLeft={timeLeft}
+          totalSeconds={ROUND_SECONDS}
+          isFeedback={feedbackLocked}
+          feedbackSeconds={feedbackTimeLeft}
+        />
         <StreakCard streak={7} />
         <ScoreCard score={2450} />
       </Drawer>
@@ -214,7 +340,12 @@ export default function GamePage() {
         }
         right={
           <>
-            <TimerCard timeLeft="00:45" />
+            <TimerCard
+              secondsLeft={timeLeft}
+              totalSeconds={ROUND_SECONDS}
+              isFeedback={feedbackLocked}
+              feedbackSeconds={feedbackTimeLeft}
+            />
             <StreakCard streak={7} />
             <ScoreCard score={2450} />
           </>
@@ -236,6 +367,7 @@ export default function GamePage() {
               roundFinished={roundFinished}
               gameOver={gameOver}
               onViewResults={handleViewResults}
+              disabled={isSubmitting || feedbackLocked}
             />
 
             <FloatingRight />
@@ -244,15 +376,17 @@ export default function GamePage() {
         phoneContent={
           <div className={styles.phoneScroll}>
             <div className={styles.phoneStatsRow}>
-              <TimerCard timeLeft="00:45" />
+              <TimerCard
+                secondsLeft={timeLeft}
+                totalSeconds={ROUND_SECONDS}
+                isFeedback={feedbackLocked}
+                feedbackSeconds={feedbackTimeLeft}
+              />
               <StreakCard streak={7} />
               <ScoreCard score={2450} />
             </div>
 
-            <HintsCard />
-            <PreviousGuesses
-                guesses={previousGuesses}
-            />
+            <PreviousGuesses guesses={previousGuesses} />
 
             <BottomBar
               selectedCountry={selectedCountryName}
@@ -262,10 +396,14 @@ export default function GamePage() {
               roundFinished={roundFinished}
               gameOver={gameOver}
               onViewResults={handleViewResults}
+              disabled={isSubmitting || feedbackLocked}
             />
 
             <div className={styles.phoneFabs}>
-              <FloatingLeft />
+              <FloatingLeft
+                isMuted={isMuted}
+                onToggleMute={toggleMute}
+              />
               <FloatingRight />
             </div>
           </div>

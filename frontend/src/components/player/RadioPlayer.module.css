@@ -36,6 +36,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
 }
 
 .nowPlaying {
@@ -52,6 +54,10 @@
   letter-spacing: 0.12em;
   color: var(--c-muted);
   text-transform: uppercase;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .live {
@@ -62,6 +68,7 @@
   font-weight: 700;
   color: var(--c-red);
   letter-spacing: 0.08em;
+  flex-shrink: 0;
 }
 
 .liveDot {
@@ -139,4 +146,10 @@
   .card    { padding: 10px 12px; gap: 10px; }
   .iconRing { width: 46px; height: 46px; }
   .nowPlaying { font-size: 10px; }
+  .stationName { font-size: 10px; }
+}
+
+@media (max-width: 360px) and (orientation: portrait) {
+  .iconRing { width: 42px; height: 42px; }
+  .card { gap: 8px; }
 }

@@ -60,7 +60,7 @@ export default function Header({ streak = 7, score = 2450, onHowToPlay}) {
 
       {/* ── Phone portrait: second row (How to play + stats) ── */}
       <div className={styles.phoneRow}>
-        <button className={styles.howToPlay} aria-label="How to play">
+        <button className={styles.howToPlay} onClick={onHowToPlay} aria-label="How to play">
           <LuCircleHelp size={14} />
           <span className={styles.howToPlayText}>How to play</span>
         </button>

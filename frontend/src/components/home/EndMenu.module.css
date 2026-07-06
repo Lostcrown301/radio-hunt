@@ -74,5 +74,8 @@
     gap: 8px;
   }
 
-  .card { padding: 12px; }
+  .card {
+    width: min(420px, calc(100vw - 24px));
+    padding: 12px;
+  }
 }

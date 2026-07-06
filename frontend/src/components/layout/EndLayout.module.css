@@ -25,3 +25,29 @@
 
     gap: 1.25rem;
 }
+
+@media (max-width: 575px) and (orientation: portrait) {
+  .shell {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .center {
+    justify-content: flex-start;
+    padding-top: 8px;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) {
+  .shell {
+    padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+    gap: 6px;
+  }
+
+  .center {
+    gap: 0.75rem;
+  }
+}

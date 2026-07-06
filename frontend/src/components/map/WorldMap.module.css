@@ -38,11 +38,19 @@
   .card { flex: 1; min-height: 200px; }
 }
 
+@media (max-width: 767px) and (orientation: landscape) {
+  .card {
+    min-height: 150px;
+  }
+}
+
 @media (max-width: 575px) and (orientation: portrait) {
   .card {
     flex: none;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 10;
     width: 100%;
+    min-height: 210px;
+    max-height: 42svh;
     overflow: hidden;
   }
 

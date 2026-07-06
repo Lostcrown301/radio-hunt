@@ -68,3 +68,22 @@
   flex-direction: column;
   gap: 10px;
 }
+
+@media (max-width: 575px) {
+  .panel {
+    width: min(340px, 92vw);
+  }
+
+  .panelHeader {
+    padding: 12px;
+  }
+
+  .closeBtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .panelBody {
+    padding: 10px;
+  }
+}

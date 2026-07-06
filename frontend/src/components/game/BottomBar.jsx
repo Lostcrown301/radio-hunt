@@ -10,8 +10,25 @@ export default function BottomBar({
     onSkip,
     roundFinished,
     gameOver,
-    onViewResults
+    onViewResults,
+    disabled = false
 }) {
+  const handlePrimaryClick = () => {
+      if (disabled) return;
+
+      if (!roundFinished) {
+          onSubmit();
+          return;
+      }
+
+      if (gameOver) {
+          onViewResults();
+          return;
+      }
+
+      onNextStation();
+  };
+
   return (
     <div className={styles.bar}>
       {/* Selected Country input */}
@@ -25,13 +42,8 @@ export default function BottomBar({
 
       <button
           className={styles.submit}
-          onClick={
-              !roundFinished
-                  ? onSubmit
-                  : gameOver
-                  ? onViewResults
-                  : onNextStation
-          }
+          onClick={handlePrimaryClick}
+          disabled={disabled}
           aria-label={
               !roundFinished
                   ? "Submit guess"
@@ -63,7 +75,7 @@ export default function BottomBar({
               roundFinished ? styles.hidden : ""
           }`}
           onClick={onSkip}
-          disabled={roundFinished}
+          disabled={roundFinished || disabled}
           aria-label="Skip this station"
       >
           <TbPlayerSkipForward size={17} />

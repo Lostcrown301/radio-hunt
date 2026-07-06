@@ -45,6 +45,10 @@
 
 .name {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 14px;
   font-weight: 500;
   color: var(--c-text);
@@ -100,6 +104,8 @@
 
   .item {
     flex: none;
+    min-width: 0;
+    max-width: 100%;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 8px;
