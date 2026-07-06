@@ -35,6 +35,8 @@ export default function GamePage() {
   const [interactionLocked, setInteractionLocked] = useState(false);
   const [roundFinished, setRoundFinished] = useState(false);
 
+  const [previousGuesses, setPreviousGuesses] = useState([]);
+
   // Audio
   const audioRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -60,6 +62,7 @@ export default function GamePage() {
       setGame(data);
       setNextRound(null);
       resetRoundUI();
+      setPreviousGuesses([]);
     }
     catch (err) {
       console.error(err);
@@ -81,6 +84,8 @@ export default function GamePage() {
       return;
     }
 
+    // console.log(selectedCountry);
+
     setInteractionLocked(true);
 
     try {
@@ -92,6 +97,15 @@ export default function GamePage() {
       setCorrectCountry(result.correctCountry);
       setGuessResult(result.correct ? "correct" : "wrong");
       setRoundFinished(true);
+
+
+      setPreviousGuesses((prev) => [
+          ...prev,
+          {
+              country: selectedCountry.name,
+              correct: result.correct,
+          },
+      ]);
 
       if (result.gameOver) {
         //setGameOver(true);
@@ -115,7 +129,7 @@ export default function GamePage() {
           streamUrl: nextRound.streamUrl,
           stationName: nextRound.stationName,
           options: nextRound.options,
-          currentRound: nextRound.currentRound,
+          currentRound: nextRound.currentRound
       }));
 
       setNextRound(null);
@@ -144,7 +158,9 @@ export default function GamePage() {
         title="Hints & Guesses"
       >
         <HintsCard />
-        <PreviousGuesses />
+        <PreviousGuesses
+            guesses={previousGuesses}
+        />
       </Drawer>
 
       <Drawer
@@ -169,7 +185,9 @@ export default function GamePage() {
         left={
           <>
             <HintsCard />
-            <PreviousGuesses />
+            <PreviousGuesses
+                guesses={previousGuesses}
+            />
           </>
         }
         center={
@@ -226,7 +244,9 @@ export default function GamePage() {
             </div>
 
             <HintsCard />
-            <PreviousGuesses />
+            <PreviousGuesses
+                guesses={previousGuesses}
+            />
 
             <BottomBar
               selectedCountry={selectedCountryName}

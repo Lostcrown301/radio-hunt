@@ -1,512 +1,502 @@
-# 🗺️ Radio Hunt - Development Roadmap
+# 🎯 Radio Hunt Development Roadmap
 
-## 📌 Current Status
+**Project Status:** Core gameplay loop is functional ✅
 
-### Backend
-
-* ✅ Express server setup
-* ✅ CORS configured
-* ✅ API structure created
-* ✅ Radio Browser API integration
-* ✅ Random station endpoint (`GET /api/game/random`)
-* ✅ Deployed on Render
-
-### Frontend
-
-* ✅ React + Vite setup
-* ✅ Routing configured
-* ✅ Folder structure created
-* ✅ Backend API connection established
-* 🚧 Game UI in development
+Current Flow:
+- ✅ Start Game
+- ✅ Fetch random station
+- ✅ Play radio
+- ✅ Highlight options
+- ✅ Select country
+- ✅ Submit guess
+- ✅ Show correct/wrong
+- ✅ Previous guesses
+- ✅ Next Station
+- ✅ 10-round game
+- ✅ Game ends after final round
 
 ---
 
-# Phase 1 — Foundation ✅
+# 🚀 Phase 1 — Complete Core Gameplay
 
-## Backend
+## 1. Score System
+Status: ❌ Pending
 
-* Express server
-* Route architecture
-* Controllers & Services
-* Environment configuration
-* CORS
-* API testing
-* Deployment (Render)
+Backend
+- [ ] Increment score on correct guess.
+- [ ] Return updated score in `/guess`.
+- [ ] Return score in `/start`.
 
-### Completed Endpoint
+Frontend
+- [ ] Store score in game state.
+- [ ] Replace hardcoded `ScoreCard`.
+- [ ] Animate score changes.
 
-```http
-GET /api/game/random
+---
+
+## 2. Streak System
+Status: ❌ Pending
+
+Backend
+- [ ] Increase streak on correct guess.
+- [ ] Reset streak on wrong guess.
+- [ ] Track longest streak.
+
+Frontend
+- [ ] Display live streak.
+- [ ] Replace hardcoded streak.
+- [ ] Animate streak increases.
+
+---
+
+## 3. Timer
+Status: ❌ Pending
+
+- [ ] Countdown each round.
+- [ ] Auto-submit when timer reaches 0.
+- [ ] Timer resets every round.
+- [ ] Pause timer after answer submitted.
+- [ ] Timer styling when under 10 seconds.
+
+---
+
+## 4. Game Over Screen
+Status: ❌ Pending
+
+Replace:
+
+```js
+console.log("Game Over");
+```
+
+With:
+
+- [ ] Final Score
+- [ ] Accuracy
+- [ ] Longest Streak
+- [ ] Total Correct
+- [ ] Total Wrong
+- [ ] Play Again
+- [ ] Back to Home
+
+---
+
+## 5. Skip Button
+Status: ❌ Pending
+
+- [ ] Backend endpoint/functionality.
+- [ ] Advance round without scoring.
+- [ ] Keep previous guess history unchanged.
+- [ ] Transition identical to Submit.
+
+---
+
+# 🎮 Gameplay Polish
+
+## 6. Automatic Round Transition
+Status: Planned
+
+Instead of:
+
+Submit
+↓
+
+Next Station button
+
+Implement:
+
+Submit
+↓
+
+Show answer
+
+↓
+
+Wait 5 seconds
+
+↓
+
+Automatically advance
+
+---
+
+## 7. Hide Skip Button Smoothly
+
+Instead of removing Skip instantly:
+
+- [ ] Fade out Skip button
+- [ ] Preserve layout space
+- [ ] Fade back in on next round
+
+---
+
+## 8. Toast Notifications
+
+Replace console logs with proper UI.
+
+Examples:
+
+- [ ] Select a country first.
+- [ ] Game not loaded.
+- [ ] Failed to load station.
+- [ ] Failed to submit guess.
+
+---
+
+## 9. Previous Guesses
+
+Current:
+- ✅ Working
+
+Possible Improvements
+
+- [ ] Show round number.
+- [ ] Animate new entry.
+- [ ] Limit scrolling nicely.
+- [ ] Better correct/wrong colors.
+
+---
+
+## 10. Round Indicator
+
+Display:
+
+```
+Round 3 / 10
 ```
 
 ---
 
-## Frontend
+# 🎵 Audio Improvements
 
-* React + Vite
-* Routing
-* Folder structure
-* API service
-* Environment variables
-* Deployment (Vercel)
+## Current
+- ✅ Manual play button
+- ✅ Browser autoplay handled
 
-### Goal
+Future
 
-Frontend successfully communicates with the backend.
+- [ ] Better loading indicator.
+- [ ] Handle broken streams gracefully.
+- [ ] Retry playback.
+- [ ] Show "Loading Station..."
+- [ ] Volume persistence.
 
 ---
 
-# Phase 2 — Game UI 🚧
+# 🌍 Map Improvements
 
-## Backend
+## Current
+- ✅ Option highlighting
+- ✅ Correct/Wrong coloring
 
-* Improve random station selection (Done)
-* Filter inactive/broken stations
-* Prevent recently played stations
-* Return cleaner station metadata (Done)
+Future
 
-Example Response
+- [ ] Better hover animation.
+- [ ] Country pulse animation.
+- [ ] Correct answer celebration.
+- [ ] Wrong guess shake animation.
+- [ ] Better zoom controls.
 
-```json
-{
-  "gameId": "...",
-  "stationName": "...",
-  "streamUrl": "...",
-  "country": "...",
-  "countryCode": "...",
-  "language": "...",
-  "favicon": "..."
-}
+---
+
+# 📊 Statistics
+
+Track:
+
+- [ ] Score
+- [ ] Accuracy
+- [ ] Correct answers
+- [ ] Wrong answers
+- [ ] Skipped
+- [ ] Longest streak
+- [ ] Fastest answer
+- [ ] Average answer time
+
+---
+
+# 🎨 UI Polish
+
+- [ ] Loading skeletons.
+- [ ] Better transitions.
+- [ ] Button hover animations.
+- [ ] Sound effects.
+- [ ] Confetti on perfect game.
+- [ ] Mobile polish.
+
+---
+
+# 🔧 Backend Improvements
+
+## 1. Better Error Logging
+
+Current
+
+```
+Failed to fetch random station
 ```
 
----
+Improve
 
-## Frontend
-
-### Components
-
-* Navbar
-* Audio Player
-* Interactive Map
-* Current Score
-* Round Information
-* Controls
-
-### Tasks
-
-* Fetch random station
-* Loading state
-* Error handling
-* Play/Pause controls
-* Volume control
-* Next Round button
-
-### Goal
-
-User can start a game and hear a radio station.
+- [ ] Log actual backend exception.
+- [ ] Include API response.
+- [ ] Include failed mirror.
 
 ---
 
-# Phase 3 — Interactive World Map
+## 2. Station Quality Filter
 
-## Backend
+Before returning a station:
 
-No major backend work.
-
----
-
-## Frontend
-
-### Features
-
-* Click countries
-* Hover effects
-* Highlight selected country
-* Country labels
-* Optional search
-* Disable unnecessary zoom
-
-### Possible Libraries
-
-* react-simple-maps
-* react-svg-worldmap
-* Custom SVG map
-
-### Goal
-
-User selects a country directly on the map.
+- [ ] Reject broken streams.
+- [ ] Reject obviously invalid metadata.
+- [ ] Prefer stations with proper country.
+- [ ] Prefer reliable streams.
 
 ---
 
-# Phase 4 — Guess System
+## 3. Retry Station Selection
 
-## Backend
+Instead of immediately failing:
 
-Create endpoint
+- [ ] Retry another station automatically.
+- [ ] Only fail after several attempts.
 
-```http
-POST /api/game/guess
+---
+
+## 4. Retry Frontend Request
+
+If
+
+```
+GET /api/games/start
 ```
 
-Request
+fails:
 
-```json
-{
-  "gameId": "...",
-  "guessCountry": "Japan"
-}
-```
-
-Responsibilities
-
-* Validate game
-* Compare answer
-* Calculate distance
-* Return score
-
-Response
-
-```json
-{
-  "correct": false,
-  "actualCountry": "Germany",
-  "distance": 7200,
-  "score": 1840
-}
-```
+- [ ] Retry automatically before showing error.
 
 ---
 
-## Frontend
+## 5. Prefer Music Stations
 
-* Submit guess
-* Lock answer after submission
-* Reveal correct country
-* Animate map
-* Display round summary
+Improve station selection.
 
-### Goal
+Prioritize:
 
-Complete one playable round.
+- Music
+- Pop
+- Rock
+- Jazz
+- Classical
+
+Avoid:
+
+- Dead streams
+- Test stations
+- Noise
+- Empty metadata
 
 ---
 
-# Phase 5 — Scoring System
+# 🌐 Radio Browser Improvements
 
-## Backend
+## Mirror Discovery
 
-Implement scoring algorithm.
+Current
+
+- Dynamic SRV discovery
+
+Future
+
+- [ ] Keep dynamic mirror discovery.
+- [ ] Add fallback mirrors (de1, nl1, fi1, etc.).
+- [ ] Try fallback mirrors before failing.
+
+---
+
+## Render Networking Issue
+
+Investigate:
+
+- [ ] Reverse DNS lookup failures.
+- [ ] Why Render sometimes discovers only one mirror.
+
+---
+
+# 🧹 Codebase Improvements
+
+## CSS
+
+Replace
+
+- [ ] Current `nth-child` drawer button styling
+
+With
+
+- [ ] Explicit CSS classes.
+
+---
+
+## State Management
+
+Current architecture is good.
+
+Future (only if needed)
+
+- [ ] Consider grouping related round state.
+- [ ] Consider custom hooks.
+
+---
+
+# 📈 Future Game Modes
+
+## Easy
+Status: ✅ Current mode
+
+- Four highlighted countries.
+
+---
+
+## Classic
+
+- Whole world clickable.
+- No highlighted countries.
+
+---
+
+## Region Challenge
+
+- Guess only inside one continent.
+
+---
+
+## Endless Mode
+
+- Infinite rounds.
+
+---
+
+## Daily Challenge
+
+- Same stations for everyone.
+
+---
+
+## Multiplayer
+
+- Live competition.
+- Leaderboards.
+
+---
+
+# 🏆 Achievements
 
 Ideas
 
-* Correct guess bonus
-* Distance-based points
-* Time bonus
-* Streak multiplier
+- [ ] 10 correct in a row.
+- [ ] Perfect game.
+- [ ] Fast guess.
+- [ ] 100 games played.
+- [ ] First win.
 
 ---
 
-## Frontend
+# 📱 Mobile Improvements
 
-Display
-
-* Round score
-* Total score
-* Remaining rounds
-* Current streak
-
-### Goal
-
-Complete gameplay loop.
+- [ ] Better drawer animations.
+- [ ] Better touch gestures.
+- [ ] Better landscape support.
+- [ ] Better spacing.
 
 ---
 
-# Phase 6 — Multiplayer Ready Architecture
+# 🔊 Future Audio Features
+
+- [ ] Crossfade between stations.
+- [ ] Visualizer improvements.
+- [ ] Station metadata.
+- [ ] Genre display.
+- [ ] Bitrate display.
+
+---
+
+# 📦 Deployment
+
+- [ ] Production logging.
+- [ ] Health check endpoint.
+- [ ] Better monitoring.
+- [ ] Analytics.
+- [ ] Error reporting.
+
+---
+
+# 🏁 Current Completion Estimate
 
 ## Backend
+**~85%**
 
-Create game session system.
+Completed:
+- Game lifecycle
+- Round progression
+- Random stations
+- Guess validation
+- Previous round preparation
 
-Tables
-
-```
-games
-rounds
-stations_played
-```
-
-Features
-
-* Unique game IDs
-* Prevent duplicate stations
-* Session management
-
----
-
-## Frontend
-
-* Restart game
-* Continue session
-* Multiple rounds
-
-### Goal
-
-Scalable game architecture.
-
----
-
-# Phase 7 — Database Integration
-
-## Backend
-
-Integrate Supabase.
-
-### Tables
-
-#### stations
-
-```
-id
-uuid
-country
-language
-votes
-```
-
-#### games
-
-```
-id
-score
-created_at
-```
-
-#### rounds
-
-```
-game_id
-station_uuid
-guess
-actual_country
-score
-distance
-```
-
-Store
-
-* Game history
-* Station metadata
-* Round results
+Remaining:
+- Score
+- Streak
+- Skip
+- Better retries
+- Better filtering
 
 ---
 
 ## Frontend
+**~80%**
 
-Consume new APIs for history and saved games.
+Completed:
+- UI
+- Gameplay loop
+- Previous guesses
+- Audio
+- Map
+- Next round architecture
 
-### Goal
-
-Persistent game data.
-
----
-
-# Phase 8 — Leaderboards
-
-## Backend
-
-Endpoints
-
-```http
-GET /api/leaderboard
-GET /api/game/history
-```
-
-Leaderboards
-
-* Global
-* Weekly
-* Daily
+Remaining:
+- Timer
+- Score
+- Streak
+- Game Over
+- Auto transition
+- Polish
 
 ---
 
-## Frontend
+# 🥇 Release Plan
 
-Pages
-
-* Leaderboard
-* Game History
-* Statistics
-
-### Goal
-
-Competitive gameplay.
-
----
-
-# Phase 9 — Authentication
-
-## Backend
-
-Supabase Authentication
-
-* Sign Up
-* Login
-* JWT verification
-* Protected routes
+## Version 1.0
+- Score
+- Streak
+- Timer
+- Game Over
+- Skip
+- Auto transition
+- Backend retries
+- Toast notifications
 
 ---
 
-## Frontend
-
-Pages
-
-* Login
-* Register
-* Profile
-
-Features
-
-* Save progress
-* Logout
-* Persistent sessions
-
-### Goal
-
-User accounts with synced progress.
+## Version 1.1
+- Better animations
+- Sound effects
+- Statistics
+- Improved station quality
 
 ---
 
-# Phase 10 — Polish
-
-## Backend
-
-* API caching
-* Rate limiting
-* Logging
-* Monitoring
-* Validation
-* Performance optimization
-
----
-
-## Frontend
-
-* Responsive design
-* Better animations
-* Loading skeletons
-* Toast notifications
-* Dark mode
-* Accessibility
-* Keyboard shortcuts
-
-### Goal
-
-Production-ready application.
-
----
-
-# Phase 11 — Stretch Features
-
-## Backend
-
-* Daily Challenge API
-* Friends API
-* Achievements
-* Player statistics
-* Country difficulty ratings
-* Radio recommendations
-
----
-
-## Frontend
-
-* Daily Challenge
-* Achievement badges
-* Share score
-* Statistics dashboard
-* Country heatmap
-* Sound effects
-* Settings page
-* Theme customization
-
-### Goal
-
-Differentiate Radio Hunt from other geography games.
-
----
-
-# 🚀 Deployment
-
-## Frontend
-
-* Vercel
-
-## Backend
-
-* Render
-* Railway (future)
-
-## Database
-
-* Supabase PostgreSQL
-
----
-
-# 🏗️ Architecture
-
-```text
-React (Vercel)
-       │
-       ▼
-Express API (Render)
-       │
-       ▼
-Supabase PostgreSQL
-       │
-       ▼
-Radio Browser API
-```
-
----
-
-# 📊 Progress
-
-| Phase                    | Backend | Frontend |
-| ------------------------ | ------- | -------- |
-| Foundation               | ✅       | ✅        |
-| Game UI                  | 🚧      | 🚧       |
-| Interactive Map          | ⏳       | ⏳        |
-| Guess System             | ⏳       | ⏳        |
-| Scoring                  | ⏳       | ⏳        |
-| Multiplayer Architecture | ⏳       | ⏳        |
-| Database                 | ⏳       | ⏳        |
-| Leaderboards             | ⏳       | ⏳        |
-| Authentication           | ⏳       | ⏳        |
-| Polish                   | ⏳       | ⏳        |
-| Stretch Features         | ⏳       | ⏳        |
-
----
-
-## 🎯 Final Goal
-
-Create a polished web game where players listen to live radio stations from around the world and guess the country on an interactive map, complete with scoring, leaderboards, user accounts, and daily challenges.
-
----
-
-## Deployment
-
-Frontend:
-
-* Vercel
-
-Backend:
-
-* Render / Railway
-
-Database:
-
-* Supabase
-
-Goal:
-
-* Publicly accessible application.
+## Version 2.0
+- Classic Mode
+- Daily Challenge
+- Endless Mode
+- Multiplayer
+- Achievements

@@ -1,41 +1,105 @@
 import { LuHistory } from "react-icons/lu";
-import { IoClose } from "react-icons/io5";
+import { IoCheckmark, IoClose } from "react-icons/io5";
 import GlassCard from "../ui/GlassCard";
 import styles from "./PreviousGuesses.module.css";
+import countries from "../../constants/countries.json";
 
-const MOCK_GUESSES = [
-  { country: "France", flag: "🇫🇷", wrong: true  },
-  { country: "Spain",  flag: "🇪🇸", wrong: true  },
-  { country: "Italy",  flag: "🇮🇹", wrong: true  },
-  { country: "Egypt",  flag: "🇪🇬", wrong: true  },
-];
+const countryCodeMap = Object.fromEntries(
+  countries.map((country) => [country.name, country.iso_3166_1])
+);
 
 const TOTAL_GUESSES = 10;
 
-export default function PreviousGuesses({ guesses = MOCK_GUESSES, total = TOTAL_GUESSES }) {
+export default function PreviousGuesses({ guesses = [] }) {
   return (
     <GlassCard className={styles.card}>
       <div className={styles.heading}>
         <LuHistory size={14} color="var(--c-purple-2)" />
-        <span className={styles.headingText}>PREVIOUS GUESSES</span>
+        <span className={styles.headingText}>
+          PREVIOUS GUESSES
+        </span>
       </div>
 
       <ul className={styles.list}>
-        {guesses.map((g) => (
-          <li key={g.country} className={styles.item}>
-            <span className={styles.flag} role="img" aria-label={g.country}>{g.flag}</span>
-            <span className={styles.name}>{g.country}</span>
-            {g.wrong && (
-              <IoClose size={16} className={styles.xIcon} aria-label="Wrong guess" />
+        {guesses.map((guess, index) => (
+          <li key={index} className={styles.item}>
+            <span
+              className={styles.flag}
+              aria-label={guess.country}
+            >
+              {countryCodeMap[guess.country] ?? "--"}
+            </span>
+
+            <span className={styles.name}>
+              {guess.country}
+            </span>
+
+            {guess.correct ? (
+              <IoCheckmark
+                size={16}
+                className={styles.correctIcon}
+                aria-label="Correct guess"
+              />
+            ) : (
+              <IoClose
+                size={16}
+                className={styles.xIcon}
+                aria-label="Wrong guess"
+              />
             )}
           </li>
         ))}
       </ul>
 
       <div className={styles.footer}>
-        <span className={styles.footerCount}>{guesses.length} / {total}</span>
-        <span className={styles.footerLabel}>guesses used</span>
+        <span className={styles.footerCount}>
+          {guesses.length} / {TOTAL_GUESSES}
+        </span>
+
+        <span className={styles.footerLabel}>
+          guesses used
+        </span>
       </div>
     </GlassCard>
   );
 }
+
+// import { LuHistory } from "react-icons/lu";
+// import { IoCheckmark, IoClose } from "react-icons/io5";
+// import GlassCard from "../ui/GlassCard";
+// import styles from "./PreviousGuesses.module.css";
+// import countries from "../constants/countries.json";
+
+// const countryCodeMap = Object.fromEntries(
+//   countries.map((country) => [country.name, country.iso_3166_1])
+// );
+
+// const TOTAL_GUESSES = 10;
+
+// export default function PreviousGuesses({ guesses = [] }) {
+//   return (
+//     <GlassCard className={styles.card}>
+//       <div className={styles.heading}>
+//         <LuHistory size={14} color="var(--c-purple-2)" />
+//         <span className={styles.headingText}>PREVIOUS GUESSES</span>
+//       </div>
+
+//       <ul className={styles.list}>
+//         {guesses.map((guess, index) => (
+//           <li key={index} className={styles.item}>
+//             <span className={styles.flag} role="img" aria-label={guess.countryCode}>{guess.countryCode}</span>
+//             <span className={styles.name}>{g.country}</span>
+//             {g.wrong && (
+//               <IoClose size={16} className={styles.xIcon} aria-label="Wrong guess" />
+//             )}
+//           </li>
+//         ))}
+//       </ul>
+
+//       <div className={styles.footer}>
+//         <span className={styles.footerCount}>{guesses.length} / {TOTAL_GUESSES}</span>
+//         <span className={styles.footerLabel}>guesses used</span>
+//       </div>
+//     </GlassCard>
+//   );
+// }

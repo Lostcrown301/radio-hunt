@@ -169,8 +169,8 @@ export default function WorldMap({options, selectedCountry, onCountrySelect, gue
 
 
                   if (isOption) {
-                      // console.log("Matched:", geo.properties.name);
-                      // console.log(geo.properties);
+                    // console.log("Matched:", geo.properties.name);
+                    // console.log(geo.properties);
                   }
                   return (
                     <Geography

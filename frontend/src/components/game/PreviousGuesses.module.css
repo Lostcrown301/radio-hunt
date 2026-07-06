@@ -38,7 +38,7 @@
 }
 
 .flag {
-  font-size: 20px;
+  font-size: 12px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -52,6 +52,11 @@
 
 .xIcon {
   color: var(--c-red);
+  flex-shrink: 0;
+}
+
+.correctIcon {
+  color: var(--c-green);
   flex-shrink: 0;
 }
 
