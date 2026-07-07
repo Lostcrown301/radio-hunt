@@ -142,6 +142,16 @@ To prevent mismatches between the Radio Browser API country names and the SVG ma
 
 ---
 
+## Known Limitations
+
+- Some live radio streams may be unavailable or blocked by the browser.
+- A small map rendering issue affects a few regions before the first interaction (under investigation).
+- Skip functionality is not fully implemented.
+- Score and streak statistics are currently placeholders.
+- Results page currently displays previous guesses; additional statistics are planned.
+- Game state is stored in memory and is lost when the backend restarts.
+- No user authentication or persistent leaderboard yet.
+
 ## 🔧 Development Scripts
 
 The backend includes developer scripts used to align database country names with map assets:
