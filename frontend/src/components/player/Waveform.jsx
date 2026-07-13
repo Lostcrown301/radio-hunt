@@ -1,17 +1,17 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import styles from "./Waveform.module.css";
 
+function createBars(barCount) {
+  return Array.from({ length: barCount }, (_, i) => ({
+    id: i,
+    height: 15 + Math.random() * 70,
+    dur:    0.6 + Math.random() * 0.8,
+    del:    Math.random() * 0.8,
+  }));
+}
+
 export default function Waveform({ barCount = 60, active=false }) {
-  const bars = useMemo(
-    () =>
-      Array.from({ length: barCount }, (_, i) => ({
-        id: i,
-        height: 15 + Math.random() * 70, // px
-        dur:    0.6 + Math.random() * 0.8,
-        del:    Math.random() * 0.8,
-      })),
-    [barCount]
-  );
+  const [bars] = useState(() => createBars(barCount));
 
   return (
     <div

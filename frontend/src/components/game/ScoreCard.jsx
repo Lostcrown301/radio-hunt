@@ -2,7 +2,7 @@ import { LuTrophy } from "react-icons/lu";
 import GlassCard from "../ui/GlassCard";
 import styles from "./ScoreCard.module.css";
 
-export default function ScoreCard({ score = 2450 }) {
+export default function ScoreCard({ score = 0 }) {
   return (
     <GlassCard className={styles.card}>
       <div className={styles.heading}>

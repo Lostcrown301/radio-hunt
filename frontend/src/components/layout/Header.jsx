@@ -19,7 +19,7 @@ function PillStat({ icon, label, value, valueClass }) {
   );
 }
 
-export default function Header({ streak = 7, score = 2450, onHowToPlay}) {
+export default function Header({ streak = 0, score = 0, onHowToPlay}) {
   return (
     <motion.div
       className={styles.header}

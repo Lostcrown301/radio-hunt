@@ -1,4 +1,4 @@
-import { LuSettings, LuVolume2, LuMaximize2, LuRefreshCw, LuPanelLeft, LuPanelRight, LuVolumeX } from "react-icons/lu";
+import { LuSettings, LuVolume2, LuMaximize2, LuPanelLeft, LuPanelRight, LuVolumeX } from "react-icons/lu";
 import styles from "./FloatingButtons.module.css";
 
 function IconBtn({ icon, label, onClick }) {

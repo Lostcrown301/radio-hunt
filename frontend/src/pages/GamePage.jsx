@@ -20,7 +20,6 @@ import { startGame, submitGuess } from "../services/radioService";
 import styles from "./GamePage.module.css";
 
 const ROUND_SECONDS = 45;
-const FEEDBACK_DELAY_MS = 5000;
 const UNANSWERED_GUESS = "No answer";
 
 export default function GamePage() {
@@ -56,6 +55,9 @@ export default function GamePage() {
   const selectedCountryName =
     selectedCountry?.name || "Select a Country";
   const previousGuesses = game?.previousGuesses || [];
+  const hints = game?.hints || {};
+  const score = game?.score ?? 0;
+  const streak = game?.streak ?? 0;
 
   const openHints = useCallback(() => setHintsOpen(true), []);
   const openStats = useCallback(() => setStatsOpen(true), []);
@@ -97,7 +99,13 @@ export default function GamePage() {
   }, [clearFeedbackTimer, resetRoundUI]);
 
   useEffect(() => {
-    loadGame();
+    const timeoutId = window.setTimeout(() => {
+      loadGame();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [loadGame]);
 
   useEffect(() => {
@@ -115,7 +123,17 @@ export default function GamePage() {
         streamUrl: roundData.streamUrl,
         stationName: roundData.stationName,
         options: roundData.options,
+        hints: roundData.hints || prev?.hints || {},
         currentRound: roundData.currentRound,
+        maxRounds: roundData.maxRounds ?? prev?.maxRounds,
+        remainingRounds: roundData.remainingRounds ?? prev?.remainingRounds,
+        score: roundData.score ?? prev?.score,
+        streak: roundData.streak ?? prev?.streak,
+        bestStreak: roundData.bestStreak ?? prev?.bestStreak,
+        correctGuesses: roundData.correctGuesses ?? prev?.correctGuesses,
+        incorrectGuesses: roundData.incorrectGuesses ?? prev?.incorrectGuesses,
+        accuracy: roundData.accuracy ?? prev?.accuracy,
+        gameOver: roundData.gameOver ?? prev?.gameOver,
         previousGuesses: roundData.previousGuesses || prev?.previousGuesses || [],
     }));
 
@@ -149,6 +167,20 @@ export default function GamePage() {
       setGameOver(result.gameOver);
       setGame((prev) => ({
           ...prev,
+          score: result.score ?? prev?.score,
+          streak: result.streak ?? prev?.streak,
+          bestStreak: result.bestStreak ?? prev?.bestStreak,
+          maxRounds: result.maxRounds ?? prev?.maxRounds,
+          remainingRounds: result.gameOver
+              ? result.remainingRounds
+              : prev?.remainingRounds,
+          correctGuesses: result.correctGuesses ?? prev?.correctGuesses,
+          incorrectGuesses: result.incorrectGuesses ?? prev?.incorrectGuesses,
+          accuracy: result.accuracy ?? prev?.accuracy,
+          gameOver: result.gameOver ?? prev?.gameOver,
+          currentRound: result.gameOver
+              ? result.currentRound
+              : prev?.currentRound,
           previousGuesses: result.previousGuesses || prev?.previousGuesses || [],
       }));
       setNextRound(result.gameOver ? null : result);
@@ -187,31 +219,39 @@ export default function GamePage() {
   useEffect(() => {
     if (timeLeft > 0 || roundFinished || gameOver) return;
 
-    submitCurrentGuess(UNANSWERED_GUESS);
+    const timeoutId = window.setTimeout(() => {
+      submitCurrentGuess(UNANSWERED_GUESS);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [gameOver, roundFinished, submitCurrentGuess, timeLeft]);
 
   useEffect(() => {
     if (!feedbackLocked) {
       clearFeedbackTimer();
-      setFeedbackTimeLeft(5);
       return;
     }
 
     clearFeedbackTimer();
-    setFeedbackTimeLeft(5);
+    const timeoutId = window.setTimeout(() => {
+      setFeedbackTimeLeft(5);
 
-    feedbackTimerRef.current = window.setInterval(() => {
-      setFeedbackTimeLeft((current) => {
-        if (current <= 1) {
-          clearFeedbackTimer();
-          return 0;
-        }
+      feedbackTimerRef.current = window.setInterval(() => {
+        setFeedbackTimeLeft((current) => {
+          if (current <= 1) {
+            clearFeedbackTimer();
+            return 0;
+          }
 
-        return current - 1;
-      });
-    }, 1000);
+          return current - 1;
+        });
+      }, 1000);
+    }, 0);
 
     return () => {
+      window.clearTimeout(timeoutId);
       clearFeedbackTimer();
     };
   }, [clearFeedbackTimer, feedbackLocked]);
@@ -219,23 +259,29 @@ export default function GamePage() {
   useEffect(() => {
     if (!feedbackLocked || feedbackTimeLeft > 0) return;
 
-    clearFeedbackTimer();
+    const timeoutId = window.setTimeout(() => {
+      clearFeedbackTimer();
 
-    if (gameOver) {
-      submissionInFlightRef.current = false;
-      setInteractionLocked(true);
+      if (gameOver) {
+        submissionInFlightRef.current = false;
+        setInteractionLocked(true);
+        setFeedbackLocked(false);
+        setRoundFinished(true);
+        return;
+      }
+
+      if (nextRound) {
+        applyNextRound(nextRound);
+        return;
+      }
+
       setFeedbackLocked(false);
-      setRoundFinished(true);
-      return;
-    }
+      setInteractionLocked(false);
+    }, 0);
 
-    if (nextRound) {
-      applyNextRound(nextRound);
-      return;
-    }
-
-    setFeedbackLocked(false);
-    setInteractionLocked(false);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [applyNextRound, clearFeedbackTimer, feedbackLocked, feedbackTimeLeft, gameOver, nextRound]);
 
   const handleSubmitGuess = () => {
@@ -282,7 +328,7 @@ export default function GamePage() {
         side="left"
         title="Hints & Guesses"
       >
-        <HintsCard />
+        <HintsCard hints={hints} />
         <PreviousGuesses
             guesses={previousGuesses}
         />
@@ -300,21 +346,21 @@ export default function GamePage() {
           isFeedback={feedbackLocked}
           feedbackSeconds={feedbackTimeLeft}
         />
-        <StreakCard streak={7} />
-        <ScoreCard score={2450} />
+        <StreakCard streak={streak} />
+        <ScoreCard score={score} />
       </Drawer>
 
       <GameLayout
         header={
           <Header
-            streak={7}
-            score={2450}
+            streak={streak}
+            score={score}
             onHowToPlay={() => setHowToPlayOpen(true)}
           />
         }
         left={
           <>
-            <HintsCard />
+            <HintsCard hints={hints} />
             <PreviousGuesses
                 guesses={previousGuesses}
             />
@@ -346,8 +392,8 @@ export default function GamePage() {
               isFeedback={feedbackLocked}
               feedbackSeconds={feedbackTimeLeft}
             />
-            <StreakCard streak={7} />
-            <ScoreCard score={2450} />
+            <StreakCard streak={streak} />
+            <ScoreCard score={score} />
           </>
         }
         bottom={
@@ -382,8 +428,8 @@ export default function GamePage() {
                 isFeedback={feedbackLocked}
                 feedbackSeconds={feedbackTimeLeft}
               />
-              <StreakCard streak={7} />
-              <ScoreCard score={2450} />
+              <StreakCard streak={streak} />
+              <ScoreCard score={score} />
             </div>
 
             <PreviousGuesses guesses={previousGuesses} />

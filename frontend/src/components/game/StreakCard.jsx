@@ -2,7 +2,7 @@ import { BsFire } from "react-icons/bs";
 import GlassCard from "../ui/GlassCard";
 import styles from "./StreakCard.module.css";
 
-export default function StreakCard({ streak = 7 }) {
+export default function StreakCard({ streak = 0 }) {
   return (
     <GlassCard className={styles.card}>
       <div className={styles.heading}>

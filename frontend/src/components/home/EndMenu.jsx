@@ -9,17 +9,45 @@ import MenuButton from "./MenuButton";
 export default function EndMenu({
     onRestart,
     onExit,
+    score = 0,
+    streak = 0,
+    bestStreak = 0,
+    correctGuesses = 0,
+    incorrectGuesses = 0,
+    accuracy = 0,
+    maxRounds = 10,
     previousGuesses,
     previousGuessesLoading,
     previousGuessesError
 }) {
+    const showStats = !previousGuessesLoading && !previousGuessesError;
+    const stats = [
+        { label: "Score", value: score.toLocaleString() },
+        { label: "Accuracy", value: `${accuracy}%` },
+        { label: "Correct", value: `${correctGuesses} / ${maxRounds}` },
+        { label: "Wrong", value: incorrectGuesses },
+        { label: "Best Streak", value: bestStreak },
+        { label: "Final Streak", value: streak },
+    ];
+
     return (
         <>
             <GlassCard className={styles.card}>
-            <div className={styles.heading}>
-                <LuAward size={15} color="var(--c-yellow)" />
-                <span className={styles.headingText}>Results</span>
-            </div>
+                <div className={styles.heading}>
+                    <LuAward size={15} color="var(--c-yellow)" />
+                    <span className={styles.headingText}>Results</span>
+                </div>
+
+                {showStats && (
+                    <div className={styles.statsGrid}>
+                        {stats.map((stat) => (
+                            <div key={stat.label} className={styles.statItem}>
+                                <span className={styles.label}>{stat.label}</span>
+                                <span className={styles.value}>{stat.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </GlassCard>
 
             <ResultsPreviousGuesses

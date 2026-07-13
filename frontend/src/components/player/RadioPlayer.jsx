@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { MdRadio } from "react-icons/md";
 import GlassCard from "../ui/GlassCard";
 import Waveform from "./Waveform";
@@ -97,7 +97,7 @@ export default function RadioPlayer({stationName, streamUrl, audioRef}) {
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [audioRef]);
 
   const handlePlay = async () => {
       const audio = audioRef.current;

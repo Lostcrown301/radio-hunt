@@ -2,14 +2,34 @@ import { LuLightbulb, LuMessageSquare, LuGlobe, LuClock, LuUsers } from "react-i
 import GlassCard from "../ui/GlassCard";
 import styles from "./HintsCard.module.css";
 
-const HINTS = [
-  { icon: <LuMessageSquare size={15} />, label: "Language", value: "Arabic",       valueClass: "blue"   },
-  { icon: <LuGlobe         size={15} />, label: "Continent", value: "Africa",       valueClass: "green"  },
-  { icon: <LuClock         size={15} />, label: "Time Zone", value: "GMT +1 to +4", valueClass: "green"  },
-  { icon: <LuUsers         size={15} />, label: "Listeners", value: "1.2K",         valueClass: "blue"   },
-];
+export default function HintsCard({ hints = {} }) {
+  const hintRows = [
+    {
+      icon: <LuMessageSquare size={15} />,
+      label: "Language",
+      value: hints.language || "Unknown",
+      valueClass: "blue",
+    },
+    {
+      icon: <LuGlobe size={15} />,
+      label: "Continent",
+      value: hints.continent || "Unknown",
+      valueClass: "green",
+    },
+    {
+      icon: <LuClock size={15} />,
+      label: "Time Zone",
+      value: hints.timeZone || "Unknown",
+      valueClass: "green",
+    },
+    {
+      icon: <LuUsers size={15} />,
+      label: "Listeners",
+      value: hints.listeners || "Unknown",
+      valueClass: "blue",
+    },
+  ];
 
-export default function HintsCard() {
   return (
     <GlassCard className={styles.card}>
       <div className={styles.heading}>
@@ -18,7 +38,7 @@ export default function HintsCard() {
       </div>
 
       <ul className={styles.list}>
-        {HINTS.map((h) => (
+        {hintRows.map((h) => (
           <li key={h.label} className={styles.item}>
             <span className={styles.icon}>{h.icon}</span>
             <div className={styles.text}>

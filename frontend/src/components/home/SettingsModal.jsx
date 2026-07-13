@@ -1,8 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose } from "react-icons/io5";
-import { FaHeadphones, FaGlobeAmericas, FaMapMarkedAlt } from "react-icons/fa";
-import { MdOutlineDone } from "react-icons/md";
-import { BsFire } from "react-icons/bs";
 
 import GlassCard from "../ui/GlassCard";
 import styles from "./SettingsModal.module.css";

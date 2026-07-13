@@ -77,6 +77,13 @@ export default function EndPage() {
                     <EndMenu
                         onRestart={handleRestart}
                         onExit={handleExit}
+                        score={results?.score || 0}
+                        streak={results?.streak || 0}
+                        bestStreak={results?.bestStreak || 0}
+                        correctGuesses={results?.correctGuesses || 0}
+                        incorrectGuesses={results?.incorrectGuesses || 0}
+                        accuracy={results?.accuracy || 0}
+                        maxRounds={results?.maxRounds || 10}
                         previousGuesses={results?.previousGuesses || []}
                         previousGuessesLoading={loading}
                         previousGuessesError={error}
