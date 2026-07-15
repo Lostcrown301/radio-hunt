@@ -54,6 +54,39 @@ function shuffle(items) {
     return shuffled;
 }
 
+function takeBalancedStations(stationBuckets, targetCount) {
+    const balancedStations = [];
+    const bucketIndexes = stationBuckets.map((_, index) => index);
+    const bucketCursors = stationBuckets.map(() => 0);
+
+    while (balancedStations.length < targetCount) {
+        let stationsAdded = 0;
+
+        for (const bucketIndex of shuffle(bucketIndexes)) {
+            const stationIndex = bucketCursors[bucketIndex];
+            const station = stationBuckets[bucketIndex][stationIndex];
+
+            if (!station) {
+                continue;
+            }
+
+            balancedStations.push(station);
+            bucketCursors[bucketIndex]++;
+            stationsAdded++;
+
+            if (balancedStations.length >= targetCount) {
+                break;
+            }
+        }
+
+        if (stationsAdded === 0) {
+            break;
+        }
+    }
+
+    return balancedStations;
+}
+
 export function isPlayableStation(station) {
     const codec = station.codec?.toUpperCase();
     const normalizedCountry = normalizeCountry(station.country);
@@ -99,14 +132,10 @@ async function fetchStationsByCountry(workingUrl, countryName) {
 export async function fetchPlayableStationBatch(targetCount) {
     const workingUrl = RADIO_BROWSER_URL;
     const validCountries = shuffle(await getCountries(workingUrl));
-    const playableStations = [];
+    const stationBuckets = [];
     const seenStationIds = new Set();
 
     for (const country of validCountries) {
-        if (playableStations.length >= targetCount) {
-            break;
-        }
-
         try {
             const stations = await fetchStationsByCountry(workingUrl, country.name);
 
@@ -115,6 +144,7 @@ export async function fetchPlayableStationBatch(targetCount) {
                     .filter(isPlayableStation)
                     .map(toPlayableStation)
             );
+            const uniqueCountryStations = [];
 
             for (const station of playableCountryStations) {
                 if (seenStationIds.has(station.stationuuid)) {
@@ -122,11 +152,11 @@ export async function fetchPlayableStationBatch(targetCount) {
                 }
 
                 seenStationIds.add(station.stationuuid);
-                playableStations.push(station);
+                uniqueCountryStations.push(station);
+            }
 
-                if (playableStations.length >= targetCount) {
-                    break;
-                }
+            if (uniqueCountryStations.length > 0) {
+                stationBuckets.push(uniqueCountryStations);
             }
         }
         catch (err) {
@@ -136,7 +166,7 @@ export async function fetchPlayableStationBatch(targetCount) {
         }
     }
 
-    return playableStations;
+    return takeBalancedStations(stationBuckets, targetCount);
 }
 
 async function writeIntoCountries(workingUrl) {
