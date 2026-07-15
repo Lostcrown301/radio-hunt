@@ -4,6 +4,8 @@ import { fetchPlayableStationBatch } from "./radio.service.js";
 const STATION_POOL_KEY = "station_pool";
 export const POOL_SIZE = 1000;
 export const POOL_REFILL_THRESHOLD = 200;
+const TOP_COUNTRY_LIMIT = 20;
+const FIRST_STATION_LIMIT = 20;
 
 let refillPromise = null;
 
@@ -40,6 +42,19 @@ function deserializeStation(stationJson) {
     catch (error) {
         throw new StationPoolServiceError("Failed to parse station from pool", error);
     }
+}
+
+function getCountryDistribution(stations) {
+    const countryCounts = new Map();
+
+    for (const station of stations) {
+        const country = station.country || "Unknown";
+
+        countryCounts.set(country, (countryCounts.get(country) || 0) + 1);
+    }
+
+    return [...countryCounts.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
 async function pushStations(stations) {
@@ -190,5 +205,65 @@ export async function getPoolSize() {
         }
 
         throw new StationPoolServiceError("Failed to read station pool size", error);
+    }
+}
+
+export async function getStationPoolStats() {
+    try {
+        const client = await getClient();
+        const stationPayloads = await client.lRange(STATION_POOL_KEY, 0, -1);
+        const poolSize = stationPayloads.length;
+        const stations = stationPayloads.map(deserializeStation);
+        const countryDistribution = getCountryDistribution(stations);
+
+        return {
+            poolSize,
+            countryCount: countryDistribution.length,
+            topCountries: countryDistribution
+                .slice(0, TOP_COUNTRY_LIMIT)
+                .map(([country, count]) => ({
+                    country,
+                    count,
+                    percentage: poolSize > 0
+                        ? `${((count / poolSize) * 100).toFixed(2)}%`
+                        : "0.00%",
+                })),
+            first20Stations: stations
+                .slice(0, FIRST_STATION_LIMIT)
+                .map((station) => ({
+                    country: station.country,
+                    name: station.name,
+                    stationuuid: station.stationuuid,
+                })),
+        };
+    }
+    catch (error) {
+        if (error instanceof StationPoolServiceError) {
+            throw error;
+        }
+
+        throw new StationPoolServiceError("Failed to read station pool stats", error);
+    }
+}
+
+export async function resetStationPool() {
+    try {
+        const client = await getClient();
+
+        await client.del(STATION_POOL_KEY);
+
+        const poolSize = await refillStationPool({ requireFullPool: true });
+
+        return {
+            success: true,
+            poolSize,
+        };
+    }
+    catch (error) {
+        if (error instanceof StationPoolServiceError) {
+            throw error;
+        }
+
+        throw new StationPoolServiceError("Failed to reset station pool", error);
     }
 }
