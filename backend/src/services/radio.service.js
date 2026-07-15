@@ -8,7 +8,7 @@ import { UNSUPPORTED_COUNTRIES } from "../utils/unsupportedCountries.js";
 // const resolve4 = util.promisify(dns.resolve4);
 // const reverse = util.promisify(dns.reverse);
 
-const TIMEOUT = 10000;
+const TIMEOUT = 30000;
 const MIN_COUNTRY_STATIONS = 30;
 const SUPPORTED_CODECS = new Set(["MP3", "AAC"]);
 const RADIO_BROWSER_HEADERS = {
