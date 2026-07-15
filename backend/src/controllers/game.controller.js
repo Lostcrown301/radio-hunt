@@ -58,7 +58,7 @@ export const getGameResults = withErrorHandling(async (req, res) => {
         });
     }
 
-    const results = getCompletedGameResults(gameId);
+    const results = await getCompletedGameResults(gameId);
 
     res.json(results);
 }, { message: "Failed to fetch game results" });

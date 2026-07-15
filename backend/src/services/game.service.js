@@ -1,9 +1,8 @@
 import crypto from "crypto";
 import { MAX_ROUNDS, SCORE_PER_CORRECT_GUESS } from "../constants/game.constants.js";
-import { fetchRandomStation } from "./radio.service.js";
+import { getNextStation } from "./stationPool.service.js";
 import { createOptions } from "../utils/createOptions.js";
-import { createGame, getGame, updateGame } from "../utils/gameStore.js";
-import { normalizeCountry } from "../utils/normalizeCountry.js";
+import { createGame, getGame, updateGame } from "./gameStore.service.js";
 
 export class GameServiceError extends Error {
     constructor(statusCode, message, payload = {}) {
@@ -55,22 +54,21 @@ function getStationHints(stationData) {
 }
 
 async function prepareNextStation() {
-    const stationData = await fetchRandomStation();
-    const normalizedCountry = normalizeCountry(stationData.country);
-    const options = createOptions(normalizedCountry);
+    const stationData = await getNextStation();
+    const options = createOptions(stationData.country);
 
     return {
         stationData,
-        normalizedCountry,
+        normalizedCountry: stationData.country,
         options,
         hints: getStationHints(stationData),
     };
 }
 
-function createInitialGame(stationData, normalizedCountry) {
+async function createInitialGame(stationData, normalizedCountry) {
     const gameId = crypto.randomUUID();
 
-    createGame(gameId, {
+    await createGame(gameId, {
         score: 0,
         streak: 0,
         bestStreak: 0,
@@ -112,8 +110,8 @@ function applyGuess(game, guess) {
 
 export async function startGameSession() {
     const { stationData, normalizedCountry, options, hints } = await prepareNextStation();
-    const gameId = createInitialGame(stationData, normalizedCountry);
-    const game = getGame(gameId);
+    const gameId = await createInitialGame(stationData, normalizedCountry);
+    const game = await getGame(gameId);
 
     return {
         gameId,
@@ -126,7 +124,7 @@ export async function startGameSession() {
 }
 
 export async function submitGuess(gameId, country) {
-    const game = getGame(gameId);
+    const game = await getGame(gameId);
 
     if (!game) {
         throw new GameServiceError(404, "Game not found");
@@ -145,7 +143,7 @@ export async function submitGuess(gameId, country) {
     const gameUpdates = applyGuess(game, guess);
 
     if (game.currentRound >= MAX_ROUNDS) {
-        const completedGame = updateGame(gameId, {
+        const completedGame = await updateGame(gameId, {
             ...gameUpdates,
             completed: true,
             completedAt: Date.now(),
@@ -159,7 +157,7 @@ export async function submitGuess(gameId, country) {
     }
 
     const { stationData, normalizedCountry, options, hints } = await prepareNextStation();
-    const updatedGame = updateGame(gameId, {
+    const updatedGame = await updateGame(gameId, {
         ...gameUpdates,
         currentRound: game.currentRound + 1,
         currentStation: {
@@ -179,8 +177,8 @@ export async function submitGuess(gameId, country) {
     };
 }
 
-export function getCompletedGameResults(gameId) {
-    const game = getGame(gameId);
+export async function getCompletedGameResults(gameId) {
+    const game = await getGame(gameId);
 
     if (!game) {
         throw new GameServiceError(404, "Game results not found");
