@@ -8,9 +8,10 @@ export const POOL_REFILL_THRESHOLD = 200;
 let refillPromise = null;
 
 export class StationPoolServiceError extends Error {
-    constructor(message, cause) {
+    constructor(message, cause, statusCode = 503) {
         super(message, { cause });
         this.name = "StationPoolServiceError";
+        this.statusCode = statusCode;
     }
 }
 
@@ -134,12 +135,25 @@ export async function initializeStationPool() {
 }
 
 export async function getNextStation() {
-    let stationJson = await popStation();
+    const currentSize = await getPoolSize();
 
-    if (!stationJson) {
-        await refillStationPool();
-        stationJson = await popStation();
+    if (currentSize > 0) {
+        const stationJson = await popStation();
+
+        if (stationJson) {
+            startLazyRefill(currentSize - 1);
+            return deserializeStation(stationJson);
+        }
     }
+
+    try {
+        await refillStationPool();
+    }
+    catch (error) {
+        throw new StationPoolServiceError("Station pool is unavailable", error);
+    }
+
+    const stationJson = await popStation();
 
     if (!stationJson) {
         throw new StationPoolServiceError("Station pool is empty after refill attempt");

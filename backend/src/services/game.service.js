@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { MAX_ROUNDS, SCORE_PER_CORRECT_GUESS } from "../constants/game.constants.js";
-import { getNextStation } from "./stationPool.service.js";
+import { getNextStation, StationPoolServiceError } from "./stationPool.service.js";
 import { createOptions } from "../utils/createOptions.js";
 import { createGame, getGame, updateGame } from "./gameStore.service.js";
 
@@ -54,7 +54,19 @@ function getStationHints(stationData) {
 }
 
 async function prepareNextStation() {
-    const stationData = await getNextStation();
+    let stationData;
+
+    try {
+        stationData = await getNextStation();
+    }
+    catch (error) {
+        if (error instanceof StationPoolServiceError) {
+            throw new GameServiceError(error.statusCode, error.message);
+        }
+
+        throw error;
+    }
+
     const options = createOptions(stationData.country);
 
     return {
