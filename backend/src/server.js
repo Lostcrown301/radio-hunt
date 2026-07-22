@@ -5,6 +5,7 @@ import gameRoutes from "./routes/game.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
 import { debugAuth } from "./middleware/debugAuth.middleware.js";
 import { getRedisClient } from "./config/redis.js";
+import { verifyPostgresConnection } from "./config/postgres.js";
 import { initializeStationPool, POOL_SIZE } from "./services/stationPool.service.js";
 
 const app = express();
@@ -46,6 +47,8 @@ async function startServer() {
     try {
         await getRedisClient();
         console.log("Redis connected");
+        await verifyPostgresConnection();
+        console.log("PostgreSQL connected");
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
