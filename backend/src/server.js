@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import authRoutes from "./routes/auth.routes.js";
 import gameRoutes from "./routes/game.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
 import { debugAuth } from "./middleware/debugAuth.middleware.js";
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
     });
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/debug", debugAuth, debugRoutes);
 

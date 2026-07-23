@@ -1,15 +1,24 @@
-/*
-Purpose:
-Contains reusable cookie helper responsibilities for authentication responses.
+const REFRESH_COOKIE_NAME = "refreshToken";
 
-Should contain:
-- Cookie option builders
-- Helpers for setting or clearing auth cookies
-- Environment-aware cookie configuration
+export function getRefreshTokenCookieName() {
+    return REFRESH_COOKIE_NAME;
+}
 
-Should NOT contain:
-- JWT signing logic
-- Database queries
-- Password hashing
-- Authentication business workflows
-*/
+export function getRefreshTokenCookieOptions(expiresAt) {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        expires: expiresAt,
+        path: "/api/auth",
+    };
+}
+
+export function getClearRefreshTokenCookieOptions() {
+    return {
+        ...getRefreshTokenCookieOptions(new Date(0)),
+        maxAge: 0,
+    };
+}

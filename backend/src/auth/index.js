@@ -12,3 +12,5 @@ Should NOT contain:
 - Password hashing
 - JWT generation or verification logic
 */
+
+export { default as authRoutes } from "../routes/auth.routes.js";

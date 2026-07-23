@@ -6,7 +6,7 @@ import {
     uniqueIndex,
     uuid,
 } from "drizzle-orm/pg-core";
-import { users } from "./users.js";
+import { users } from "./usersTable.js";
 
 export const refreshTokens = pgTable("refresh_tokens", {
     id: uuid("id").defaultRandom().primaryKey(),

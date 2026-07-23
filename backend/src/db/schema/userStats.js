@@ -4,7 +4,7 @@ import {
     timestamp,
     uuid,
 } from "drizzle-orm/pg-core";
-import { users } from "./users.js";
+import { users } from "./usersTable.js";
 
 export const userStats = pgTable("user_stats", {
     userId: uuid("user_id")

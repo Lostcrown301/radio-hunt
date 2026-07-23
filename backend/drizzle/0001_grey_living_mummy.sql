@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "account_deletion_scheduled_at" timestamp with time zone;
