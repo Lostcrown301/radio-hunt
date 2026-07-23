@@ -6,6 +6,8 @@ import EndMenu from "../components/home/EndMenu";
 import EndLayout from "../components/layout/EndLayout";
 import { getGameResults } from "../services/radioService";
 
+const ACTIVE_GAME_ID_KEY = "activeGameId";
+
 export default function EndPage() {
 
     const navigate = useNavigate();
@@ -29,12 +31,17 @@ export default function EndPage() {
                 setLoading(true);
                 setError("");
                 const data = await getGameResults(gameId);
+                localStorage.removeItem(ACTIVE_GAME_ID_KEY);
 
                 if (active) {
                     setResults(data);
                 }
             }
             catch (err) {
+                if (err.response?.status === 404 || err.response?.status === 410) {
+                    localStorage.removeItem(ACTIVE_GAME_ID_KEY);
+                }
+
                 if (active) {
                     setError(
                         err.response?.status === 404
@@ -60,10 +67,12 @@ export default function EndPage() {
     }, [gameId]);
 
     const handleRestart = () => {
+        localStorage.removeItem(ACTIVE_GAME_ID_KEY);
         navigate("/game");
     };
 
     const handleExit = () => {
+        localStorage.removeItem(ACTIVE_GAME_ID_KEY);
         navigate("/");
     }
 
@@ -84,6 +93,7 @@ export default function EndPage() {
                         incorrectGuesses={results?.incorrectGuesses || 0}
                         accuracy={results?.accuracy || 0}
                         maxRounds={results?.maxRounds || 10}
+                        userStats={results?.userStats}
                         previousGuesses={results?.previousGuesses || []}
                         previousGuessesLoading={loading}
                         previousGuessesError={error}

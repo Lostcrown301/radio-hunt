@@ -20,6 +20,14 @@ export default function HomePage() {
         navigate("/game");
     };
 
+    const handleLogin = () => {
+        navigate("/login");
+    };
+
+    const handleRegister = () => {
+        navigate("/register");
+    };
+
     const handleHowToPlay = () => {
 //        console.log("How To Play clicked");
         setHowToPlayOpen(true);
@@ -39,6 +47,8 @@ export default function HomePage() {
                     <MainMenu
                         onStart={handleStart}
                         onHowToPlay={handleHowToPlay}
+                        onLogin={handleLogin}
+                        onRegister={handleRegister}
                         onSettings={handleSettings}
                     />
                 }

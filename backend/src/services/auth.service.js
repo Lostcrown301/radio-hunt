@@ -15,10 +15,16 @@ Should NOT contain:
 */
 
 import { getRedisClient } from "../config/redis.js";
+import {
+    getEmailVerificationConfig,
+    isEmailVerificationEnabled,
+} from "../config/emailVerification.js";
 import { AuthServiceError } from "../errors/auth.errors.js";
+import crypto from "node:crypto";
 import {
     cancelAccountDeletion as cancelAccountDeletionInRepository,
-    createUserWithStats,
+    createOrRefreshUnverifiedUserWithOtp,
+    createVerifiedUserWithStatsAndRefreshToken,
     deleteRefreshTokenByHash,
     deleteRefreshTokensByUserId,
     findRefreshTokenByHash,
@@ -26,10 +32,11 @@ import {
     findUserByEmailOrUsername,
     findUserById,
     findUserByUsername,
-    markUserEmailVerified,
+    replaceEmailVerificationOtp,
     saveRefreshToken,
     scheduleAccountDeletion as scheduleAccountDeletionInRepository,
     updateUserPassword,
+    verifyEmailOtpAndSaveRefreshToken,
 } from "../repositories/auth.repository.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../utils/email.js";
 import {
@@ -40,7 +47,6 @@ import {
     verifyRefreshToken,
 } from "../utils/jwt.js";
 import {
-    EMAIL_VERIFICATION_OTP_TTL_SECONDS,
     PASSWORD_RESET_OTP_TTL_SECONDS,
     PASSWORD_RESET_VERIFIED_TTL_SECONDS,
     VERIFICATION_OTP_RESEND_COOLDOWN_SECONDS,
@@ -50,11 +56,11 @@ import {
 } from "../utils/otp.js";
 import { hashPassword, verifyPassword } from "../utils/password.js";
 
-const EMAIL_VERIFICATION_PREFIX = "auth:email-verification:";
-const EMAIL_VERIFICATION_COOLDOWN_PREFIX = "auth:email-verification-cooldown:";
 const PASSWORD_RESET_PREFIX = "auth:password-reset:";
 const PASSWORD_RESET_VERIFIED_PREFIX = "auth:password-reset-verified:";
 const ACCOUNT_DELETION_DELAY_DAYS = 15;
+const REGISTRATION_LOCK_TTL_SECONDS = 30;
+const RESEND_LOCK_TTL_SECONDS = 30;
 
 function normalizeEmail(email) {
     return email.trim().toLowerCase();
@@ -90,15 +96,54 @@ async function deleteKey(key) {
     await redis.del(key);
 }
 
-async function createAndSendVerificationOtp(user) {
-    const otp = generateOtp();
+function getOtpExpiresAt(ttlSeconds) {
+    return new Date(Date.now() + ttlSeconds * 1000);
+}
 
-    await setOtp(
-        `${EMAIL_VERIFICATION_PREFIX}${user.id}`,
-        otp,
-        EMAIL_VERIFICATION_OTP_TTL_SECONDS,
-    );
-    await sendVerificationEmail(user, otp);
+async function sendVerificationEmailOrThrow(user, otp) {
+    try {
+        const result = await sendVerificationEmail(user, otp);
+
+        if (result?.accepted === false) {
+            throw new Error("Verification email was rejected");
+        }
+    }
+    catch (error) {
+        throw new AuthServiceError("Could not send verification email. Please try again.", 502, "EMAIL_DELIVERY_FAILED", {
+            cause: error.message,
+        });
+    }
+}
+
+async function acquireLock(key, ttlSeconds) {
+    const redis = await getRedisClient();
+    const token = crypto.randomUUID();
+    const result = await redis.set(key, token, {
+        EX: ttlSeconds,
+        NX: true,
+    });
+
+    if (result !== "OK") {
+        return null;
+    }
+
+    return {
+        key,
+        token,
+    };
+}
+
+async function releaseLock(lock) {
+    if (!lock) {
+        return;
+    }
+
+    const redis = await getRedisClient();
+    const token = await redis.get(lock.key);
+
+    if (token === lock.token) {
+        await redis.del(lock.key);
+    }
 }
 
 function assertUserExists(user) {
@@ -113,40 +158,130 @@ function assertOtpMatches(otp, otpHash) {
     }
 }
 
-export async function registerUser(userData) {
-    const email = normalizeEmail(userData.email);
-    const username = userData.username.trim();
-    const existingEmail = await findUserByEmail(email);
+async function createAuthSession(user) {
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
 
-    if (existingEmail) {
-        throw new AuthServiceError("Email already registered", 409, "EMAIL_ALREADY_REGISTERED");
-    }
-
-    const existingUsername = await findUserByUsername(username);
-
-    if (existingUsername) {
-        throw new AuthServiceError(
-            `Username ${username} already exists. Try another one.`,
-            409,
-            "USERNAME_ALREADY_REGISTERED",
-        );
-    }
-
-    const passwordHash = await hashPassword(userData.password);
-    const user = await createUserWithStats({
-        name: userData.name.trim(),
-        username,
-        email,
-        passwordHash,
-        avatarUrl: userData.avatarUrl,
-    });
-
-    await createAndSendVerificationOtp(user);
+    await saveRefreshToken(user.id, hashToken(refreshToken), refreshTokenExpiresAt);
 
     return {
         user: sanitizeUser(user),
-        message: "Registration successful. Verification OTP sent.",
+        accessToken,
+        refreshToken,
+        refreshTokenExpiresAt,
     };
+}
+
+export async function registerUser(userData) {
+    const email = normalizeEmail(userData.email);
+    const username = userData.username.trim();
+    const lock = await acquireLock(`auth:registration:${email}`, REGISTRATION_LOCK_TTL_SECONDS);
+
+    if (!lock) {
+        throw new AuthServiceError("Registration is already in progress for this email", 429, "REGISTRATION_IN_PROGRESS");
+    }
+
+    try {
+        const existingEmail = await findUserByEmail(email);
+
+        if (existingEmail?.emailVerified) {
+            throw new AuthServiceError("Email already registered", 409, "EMAIL_ALREADY_REGISTERED");
+        }
+
+        const existingUsername = await findUserByUsername(username);
+
+        if (existingUsername && existingUsername.id !== existingEmail?.id) {
+            throw new AuthServiceError(
+                `Username ${username} already exists. Try another one.`,
+                409,
+                "USERNAME_ALREADY_REGISTERED",
+            );
+        }
+
+        const passwordHash = await hashPassword(userData.password);
+
+        if (!isEmailVerificationEnabled()) {
+            const user = {
+                id: crypto.randomUUID(),
+                name: userData.name.trim(),
+                username,
+                email,
+                passwordHash,
+                avatarUrl: userData.avatarUrl,
+            };
+            const refreshToken = generateRefreshToken(user);
+            const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
+            const result = await createVerifiedUserWithStatsAndRefreshToken({
+                userData: user,
+                refreshTokenHash: hashToken(refreshToken),
+                refreshTokenExpiresAt,
+            });
+
+            if (result.status === "conflict") {
+                throw new AuthServiceError("Registration conflict. Please try again.", 409, "REGISTRATION_CONFLICT");
+            }
+
+            return {
+                user: sanitizeUser(result.user),
+                accessToken: generateAccessToken(result.user),
+                refreshToken,
+                refreshTokenExpiresAt,
+                message: "Registration successful.",
+            };
+        }
+
+        const otp = generateOtp();
+        const otpHash = hashOtp(otp);
+        const otpExpiresAt = getOtpExpiresAt(getEmailVerificationConfig().otpTtlSeconds);
+        const pendingUser = {
+            id: existingEmail?.id,
+            name: userData.name.trim(),
+            username,
+            email,
+            avatarUrl: userData.avatarUrl,
+        };
+
+        await sendVerificationEmailOrThrow(pendingUser, otp);
+
+        const result = await createOrRefreshUnverifiedUserWithOtp({
+            userData: {
+                name: pendingUser.name,
+                username,
+                email,
+                passwordHash,
+                avatarUrl: pendingUser.avatarUrl,
+            },
+            otpHash,
+            otpExpiresAt,
+        });
+
+        if (result.status === "email_registered") {
+            throw new AuthServiceError("Email already registered", 409, "EMAIL_ALREADY_REGISTERED");
+        }
+
+        if (result.status === "username_registered") {
+            throw new AuthServiceError(
+                `Username ${username} already exists. Try another one.`,
+                409,
+                "USERNAME_ALREADY_REGISTERED",
+            );
+        }
+
+        if (result.status === "conflict") {
+            throw new AuthServiceError("Registration conflict. Please try again.", 409, "REGISTRATION_CONFLICT");
+        }
+
+        return {
+            user: sanitizeUser(result.user),
+            message: result.status === "refreshed_unverified"
+                ? "Your email is not verified yet. A new verification code has been sent."
+                : "Registration successful. Verification OTP sent.",
+        };
+    }
+    finally {
+        await releaseLock(lock);
+    }
 }
 
 export async function loginUser(credentials) {
@@ -168,76 +303,121 @@ export async function loginUser(credentials) {
         });
     }
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-    const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
-
-    await saveRefreshToken(user.id, hashToken(refreshToken), refreshTokenExpiresAt);
-
-    return {
-        user: sanitizeUser(user),
-        accessToken,
-        refreshToken,
-        refreshTokenExpiresAt,
-    };
+    return createAuthSession(user);
 }
 
 export async function verifyEmailOtp(userId, otp) {
-    const otpKey = `${EMAIL_VERIFICATION_PREFIX}${userId}`;
+    if (!isEmailVerificationEnabled()) {
+        throw new AuthServiceError(
+            "Email verification is disabled in the current environment.",
+            409,
+            "EMAIL_VERIFICATION_DISABLED",
+        );
+    }
+
     const user = await findUserById(userId);
 
     assertUserExists(user);
 
     if (user.emailVerified) {
-        return {
-            success: true,
-            message: "Email is already verified.",
-        };
+        throw new AuthServiceError("Email is already verified.", 409, "EMAIL_ALREADY_VERIFIED");
     }
 
-    assertOtpMatches(otp, await getOtpHash(otpKey));
+    const refreshToken = generateRefreshToken(user);
+    const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
+    const result = await verifyEmailOtpAndSaveRefreshToken({
+        userId,
+        otpHash: hashOtp(otp),
+        now: new Date(),
+        refreshTokenHash: hashToken(refreshToken),
+        refreshTokenExpiresAt,
+    });
 
-    await markUserEmailVerified(userId);
-    await deleteKey(otpKey);
-    await deleteKey(`${EMAIL_VERIFICATION_COOLDOWN_PREFIX}${userId}`);
+    if (result.status === "not_found") {
+        throw new AuthServiceError("User not found", 404, "USER_NOT_FOUND");
+    }
+
+    if (result.status === "already_verified") {
+        throw new AuthServiceError("Email is already verified.", 409, "EMAIL_ALREADY_VERIFIED");
+    }
+
+    if (result.status === "invalid_otp") {
+        throw new AuthServiceError("Invalid or expired OTP", 400, "INVALID_OTP");
+    }
+
+    const accessToken = generateAccessToken(result.user);
 
     return {
-        success: true,
+        user: sanitizeUser(result.user),
+        accessToken,
+        refreshToken,
+        refreshTokenExpiresAt,
         message: "Email verified successfully.",
     };
 }
 
 export async function resendVerificationOtp(userId) {
-    const user = await findUserById(userId);
+    if (!isEmailVerificationEnabled()) {
+        throw new AuthServiceError(
+            "Email verification is disabled in the current environment.",
+            409,
+            "EMAIL_VERIFICATION_DISABLED",
+        );
+    }
 
-    assertUserExists(user);
+    const lock = await acquireLock(`auth:verification-resend:${userId}`, RESEND_LOCK_TTL_SECONDS);
 
-    if (user.emailVerified) {
+    if (!lock) {
+        throw new AuthServiceError("Verification email is already being sent", 429, "VERIFICATION_RESEND_IN_PROGRESS");
+    }
+
+    try {
+        const user = await findUserById(userId);
+
+        assertUserExists(user);
+
+        if (user.emailVerified) {
+            throw new AuthServiceError("Email is already verified.", 409, "EMAIL_ALREADY_VERIFIED");
+        }
+
+        const redis = await getRedisClient();
+        const cooldownKey = `auth:email-verification-cooldown:${userId}`;
+        const retryAfterSeconds = await redis.ttl(cooldownKey);
+
+        if (retryAfterSeconds > 0) {
+            throw new AuthServiceError("Please wait before requesting another OTP", 429, "OTP_RESEND_COOLDOWN", {
+                retryAfterSeconds,
+            });
+        }
+
+        const otp = generateOtp();
+        const otpHash = hashOtp(otp);
+        const otpExpiresAt = getOtpExpiresAt(getEmailVerificationConfig().otpTtlSeconds);
+
+        await sendVerificationEmailOrThrow(user, otp);
+
+        const result = await replaceEmailVerificationOtp(userId, otpHash, otpExpiresAt);
+
+        if (result.status === "not_found") {
+            throw new AuthServiceError("User not found", 404, "USER_NOT_FOUND");
+        }
+
+        if (result.status === "already_verified") {
+            throw new AuthServiceError("Email is already verified.", 409, "EMAIL_ALREADY_VERIFIED");
+        }
+
+        await redis.set(cooldownKey, "1", {
+            EX: VERIFICATION_OTP_RESEND_COOLDOWN_SECONDS,
+        });
+
         return {
             success: true,
-            message: "Email is already verified.",
+            message: "Verification OTP sent.",
         };
     }
-
-    const redis = await getRedisClient();
-    const cooldownKey = `${EMAIL_VERIFICATION_COOLDOWN_PREFIX}${userId}`;
-    const retryAfterSeconds = await redis.ttl(cooldownKey);
-
-    if (retryAfterSeconds > 0) {
-        throw new AuthServiceError("Please wait before requesting another OTP", 429, "OTP_RESEND_COOLDOWN", {
-            retryAfterSeconds,
-        });
+    finally {
+        await releaseLock(lock);
     }
-
-    await createAndSendVerificationOtp(user);
-    await redis.set(cooldownKey, "1", {
-        EX: VERIFICATION_OTP_RESEND_COOLDOWN_SECONDS,
-    });
-
-    return {
-        success: true,
-        message: "Verification OTP sent.",
-    };
 }
 
 export async function refreshAccessToken(refreshToken) {

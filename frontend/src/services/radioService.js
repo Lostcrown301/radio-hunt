@@ -5,6 +5,11 @@ export const startGame = async () => {
     return response.data;
 };
 
+export const restoreGame = async (gameId) => {
+    const response = await api.get(`/api/games/${gameId}`);
+    return response.data;
+};
+
 export const submitGuess = async (gameId, country) => {
     const response = await api.post("/api/games/guess", {
         gameId,

@@ -14,9 +14,15 @@ Should NOT contain:
 - Route definitions
 */
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db/db.js";
-import { refreshTokens, userStats, users } from "../db/schema/index.js";
+import { authOtps, refreshTokens, userStats, users } from "../db/schema/index.js";
+
+export const EMAIL_VERIFICATION_OTP_PURPOSE = "email_verification";
+
+function isUniqueViolation(error) {
+    return error?.code === "23505";
+}
 
 export async function createUserWithStats(userData) {
     return db.transaction(async (tx) => {
@@ -31,6 +37,159 @@ export async function createUserWithStats(userData) {
 
         return user;
     });
+}
+
+export async function createVerifiedUserWithStatsAndRefreshToken({
+    userData,
+    refreshTokenHash,
+    refreshTokenExpiresAt,
+}) {
+    try {
+        return await db.transaction(async (tx) => {
+            const [createdUser] = await tx
+                .insert(users)
+                .values({
+                    ...userData,
+                    emailVerified: true,
+                })
+                .returning();
+
+            await tx.insert(userStats).values({
+                userId: createdUser.id,
+            });
+
+            await tx
+                .insert(refreshTokens)
+                .values({
+                    userId: createdUser.id,
+                    tokenHash: refreshTokenHash,
+                    expiresAt: refreshTokenExpiresAt,
+                });
+
+            return {
+                status: "created",
+                user: createdUser,
+            };
+        });
+    }
+    catch (error) {
+        if (isUniqueViolation(error)) {
+            return {
+                status: "conflict",
+                error,
+            };
+        }
+
+        throw error;
+    }
+}
+
+export async function createOrRefreshUnverifiedUserWithOtp({
+    userData,
+    otpHash,
+    otpExpiresAt,
+}) {
+    try {
+        return await db.transaction(async (tx) => {
+            const [existingEmailUser] = await tx
+                .select()
+                .from(users)
+                .where(eq(users.email, userData.email));
+
+            if (existingEmailUser?.emailVerified) {
+                return {
+                    status: "email_registered",
+                    user: existingEmailUser,
+                };
+            }
+
+            const [existingUsernameUser] = await tx
+                .select()
+                .from(users)
+                .where(eq(users.username, userData.username));
+
+            if (existingUsernameUser && existingUsernameUser.id !== existingEmailUser?.id) {
+                return {
+                    status: "username_registered",
+                    user: existingUsernameUser,
+                };
+            }
+
+            if (existingEmailUser) {
+                const [updatedUser] = await tx
+                    .update(users)
+                    .set({
+                        name: userData.name,
+                        username: userData.username,
+                        passwordHash: userData.passwordHash,
+                        avatarUrl: userData.avatarUrl,
+                    })
+                    .where(and(
+                        eq(users.id, existingEmailUser.id),
+                        eq(users.emailVerified, false),
+                    ))
+                    .returning();
+
+                if (!updatedUser) {
+                    return {
+                        status: "email_registered",
+                        user: existingEmailUser,
+                    };
+                }
+
+                await upsertEmailVerificationOtp(tx, updatedUser.id, otpHash, otpExpiresAt);
+
+                return {
+                    status: "refreshed_unverified",
+                    user: updatedUser,
+                };
+            }
+
+            const [createdUser] = await tx
+                .insert(users)
+                .values(userData)
+                .returning();
+
+            await tx.insert(userStats).values({
+                userId: createdUser.id,
+            });
+            await upsertEmailVerificationOtp(tx, createdUser.id, otpHash, otpExpiresAt);
+
+            return {
+                status: "created",
+                user: createdUser,
+            };
+        });
+    }
+    catch (error) {
+        if (isUniqueViolation(error)) {
+            return {
+                status: "conflict",
+                error,
+            };
+        }
+
+        throw error;
+    }
+}
+
+async function upsertEmailVerificationOtp(tx, userId, otpHash, expiresAt) {
+    await tx
+        .insert(authOtps)
+        .values({
+            userId,
+            purpose: EMAIL_VERIFICATION_OTP_PURPOSE,
+            otpHash,
+            expiresAt,
+        })
+        .onConflictDoUpdate({
+            target: [authOtps.userId, authOtps.purpose],
+            set: {
+                otpHash,
+                expiresAt,
+                updatedAt: new Date(),
+            },
+        });
 }
 
 export async function findUserByEmail(email) {
@@ -57,6 +216,116 @@ export async function findUserByEmailOrUsername(identifier) {
     }
 
     return findUserByUsername(identifier);
+}
+
+export async function replaceEmailVerificationOtp(userId, otpHash, expiresAt) {
+    return db.transaction(async (tx) => {
+        const [user] = await tx
+            .select()
+            .from(users)
+            .where(eq(users.id, userId));
+
+        if (!user) {
+            return {
+                status: "not_found",
+            };
+        }
+
+        if (user.emailVerified) {
+            return {
+                status: "already_verified",
+                user,
+            };
+        }
+
+        await upsertEmailVerificationOtp(tx, user.id, otpHash, expiresAt);
+
+        return {
+            status: "otp_replaced",
+            user,
+        };
+    });
+}
+
+export async function verifyEmailOtpAndSaveRefreshToken({
+    userId,
+    otpHash,
+    now,
+    refreshTokenHash,
+    refreshTokenExpiresAt,
+}) {
+    return db.transaction(async (tx) => {
+        const [user] = await tx
+            .select()
+            .from(users)
+            .where(eq(users.id, userId));
+
+        if (!user) {
+            return {
+                status: "not_found",
+            };
+        }
+
+        if (user.emailVerified) {
+            return {
+                status: "already_verified",
+                user,
+            };
+        }
+
+        const [storedOtp] = await tx
+            .select()
+            .from(authOtps)
+            .where(and(
+                eq(authOtps.userId, userId),
+                eq(authOtps.purpose, EMAIL_VERIFICATION_OTP_PURPOSE),
+            ));
+
+        if (!storedOtp || storedOtp.otpHash !== otpHash || storedOtp.expiresAt <= now) {
+            return {
+                status: "invalid_otp",
+                user,
+            };
+        }
+
+        const [verifiedUser] = await tx
+            .update(users)
+            .set({
+                emailVerified: true,
+            })
+            .where(and(
+                eq(users.id, userId),
+                eq(users.emailVerified, false),
+            ))
+            .returning();
+
+        if (!verifiedUser) {
+            return {
+                status: "already_verified",
+                user,
+            };
+        }
+
+        await tx
+            .delete(authOtps)
+            .where(and(
+                eq(authOtps.userId, userId),
+                eq(authOtps.purpose, EMAIL_VERIFICATION_OTP_PURPOSE),
+            ));
+
+        await tx
+            .insert(refreshTokens)
+            .values({
+                userId,
+                tokenHash: refreshTokenHash,
+                expiresAt: refreshTokenExpiresAt,
+            });
+
+        return {
+            status: "verified",
+            user: verifiedUser,
+        };
+    });
 }
 
 export async function markUserEmailVerified(userId) {

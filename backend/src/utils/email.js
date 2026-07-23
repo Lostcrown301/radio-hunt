@@ -1,3 +1,5 @@
+import { createEmailProvider } from "../email/emailProviderFactory.js";
+
 export async function sendVerificationEmail(user, otp) {
     return sendAuthEmail({
         to: user.email,
@@ -15,12 +17,7 @@ export async function sendPasswordResetEmail(user, otp) {
 }
 
 async function sendAuthEmail(message) {
-    if (process.env.NODE_ENV !== "production") {
-        console.info(`[auth email] ${message.subject} -> ${message.to}: ${message.text}`);
-    }
+    const provider = createEmailProvider();
 
-    return {
-        accepted: true,
-        provider: "console",
-    };
+    return provider.send(message);
 }

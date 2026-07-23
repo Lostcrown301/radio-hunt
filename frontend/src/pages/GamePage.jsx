@@ -15,12 +15,13 @@ import Drawer from "../components/ui/Drawer";
 import { FloatingLeft, FloatingRight } from "../components/ui/FloatingButtons";
 import HowToPlayModal from "../components/home/HowToPlayModal";
 
-import { startGame, submitGuess } from "../services/radioService";
+import { restoreGame, startGame, submitGuess } from "../services/radioService";
 
 import styles from "./GamePage.module.css";
 
 const ROUND_SECONDS = 45;
 const UNANSWERED_GUESS = "No answer";
+const ACTIVE_GAME_ID_KEY = "activeGameId";
 
 export default function GamePage() {
 
@@ -33,7 +34,6 @@ export default function GamePage() {
 
   // Game state
   const [game, setGame] = useState(null);
-  const [nextRound, setNextRound] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [correctCountry, setCorrectCountry] = useState(null);
   const [guessResult, setGuessResult] = useState(null);
@@ -45,6 +45,7 @@ export default function GamePage() {
   const [feedbackLocked, setFeedbackLocked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedbackTimeLeft, setFeedbackTimeLeft] = useState(5);
+  const [pageMessage, setPageMessage] = useState("");
 
   // Audio
   const audioRef = useRef(null);
@@ -62,6 +63,19 @@ export default function GamePage() {
   const openHints = useCallback(() => setHintsOpen(true), []);
   const openStats = useCallback(() => setStatsOpen(true), []);
 
+  const clearActiveGame = useCallback(() => {
+    localStorage.removeItem(ACTIVE_GAME_ID_KEY);
+  }, []);
+
+  const handleExpiredGame = useCallback(() => {
+    clearActiveGame();
+    setPageMessage("Your game has expired. Start a new game.");
+
+    window.setTimeout(() => {
+      navigate("/");
+    }, 1400);
+  }, [clearActiveGame, navigate]);
+
   const clearFeedbackTimer = useCallback(() => {
     if (feedbackTimerRef.current) {
       clearInterval(feedbackTimerRef.current);
@@ -69,34 +83,81 @@ export default function GamePage() {
     }
   }, []);
 
-  const resetRoundUI = useCallback(() => {
-    clearFeedbackTimer();
+  const applyServerGameState = useCallback((data) => {
+    if (!data) return;
+
+    setGame(data);
     setSelectedCountry(null);
+    setTimeLeft(data.remainingTime ?? ROUND_SECONDS);
+    setFeedbackTimeLeft(data.feedbackRemainingTime ?? 0);
+    setGameOver(Boolean(data.gameOver));
+    setIsSubmitting(false);
+    submissionInFlightRef.current = false;
+
+    if (data.gameOver) {
+      clearActiveGame();
+    }
+
+    if (data.gameStatus === "feedback" && data.feedback) {
+      setCorrectCountry(data.feedback.correctCountry);
+      setGuessResult(data.feedback.correct ? "correct" : "wrong");
+      setRoundFinished(true);
+      setFeedbackLocked(true);
+      setInteractionLocked(true);
+      return;
+    }
+
     setCorrectCountry(null);
     setGuessResult(null);
-    setInteractionLocked(false);
     setRoundFinished(false);
     setFeedbackLocked(false);
-    setIsSubmitting(false);
-    setTimeLeft(ROUND_SECONDS);
-    setFeedbackTimeLeft(5);
-    submissionInFlightRef.current = false;
-  }, [clearFeedbackTimer]);
+    setInteractionLocked(Boolean(data.gameOver));
+  }, [clearActiveGame]);
+
+  const restoreActiveGame = useCallback(async (gameId) => {
+    try {
+      const data = await restoreGame(gameId);
+
+      applyServerGameState(data);
+
+      if (data.gameOver) {
+        navigate(`/results?gameId=${encodeURIComponent(gameId)}`);
+      }
+    }
+    catch (err) {
+      if (err.response?.status === 404 || err.response?.status === 410) {
+        handleExpiredGame();
+        return;
+      }
+
+      console.error(err);
+    }
+  }, [applyServerGameState, handleExpiredGame, navigate]);
 
   const loadGame = useCallback(async () => {
     try {
       clearFeedbackTimer();
+      const activeGameId = localStorage.getItem(ACTIVE_GAME_ID_KEY);
+
+      if (activeGameId) {
+        await restoreActiveGame(activeGameId);
+        return;
+      }
+
       const data = await startGame();
 
-      setGame(data);
-      setNextRound(null);
-      resetRoundUI();
-      setGameOver(false);
+      localStorage.setItem(ACTIVE_GAME_ID_KEY, data.gameId);
+      applyServerGameState(data);
     }
     catch (err) {
+      if (err.response?.status === 404 || err.response?.status === 410) {
+        handleExpiredGame();
+        return;
+      }
+
       console.error(err);
     }
-  }, [clearFeedbackTimer, resetRoundUI]);
+  }, [applyServerGameState, clearFeedbackTimer, handleExpiredGame, restoreActiveGame]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -114,32 +175,6 @@ export default function GamePage() {
       submissionInFlightRef.current = false;
     };
   }, [clearFeedbackTimer]);
-
-  const applyNextRound = useCallback((roundData) => {
-    if (!roundData) return;
-
-    setGame((prev) => ({
-        ...prev,
-        streamUrl: roundData.streamUrl,
-        stationName: roundData.stationName,
-        options: roundData.options,
-        hints: roundData.hints || prev?.hints || {},
-        currentRound: roundData.currentRound,
-        maxRounds: roundData.maxRounds ?? prev?.maxRounds,
-        remainingRounds: roundData.remainingRounds ?? prev?.remainingRounds,
-        score: roundData.score ?? prev?.score,
-        streak: roundData.streak ?? prev?.streak,
-        bestStreak: roundData.bestStreak ?? prev?.bestStreak,
-        correctGuesses: roundData.correctGuesses ?? prev?.correctGuesses,
-        incorrectGuesses: roundData.incorrectGuesses ?? prev?.incorrectGuesses,
-        accuracy: roundData.accuracy ?? prev?.accuracy,
-        gameOver: roundData.gameOver ?? prev?.gameOver,
-        previousGuesses: roundData.previousGuesses || prev?.previousGuesses || [],
-    }));
-
-    setNextRound(null);
-    resetRoundUI();
-  }, [resetRoundUI]);
 
   const submitCurrentGuess = useCallback(async (guessCountry) => {
     if (!guessCountry) {
@@ -161,53 +196,34 @@ export default function GamePage() {
         guessCountry,
       );
 
-      setCorrectCountry(result.correctCountry);
-      setGuessResult(result.correct ? "correct" : "wrong");
-      setRoundFinished(true);
-      setGameOver(result.gameOver);
-      setGame((prev) => ({
-          ...prev,
-          score: result.score ?? prev?.score,
-          streak: result.streak ?? prev?.streak,
-          bestStreak: result.bestStreak ?? prev?.bestStreak,
-          maxRounds: result.maxRounds ?? prev?.maxRounds,
-          remainingRounds: result.gameOver
-              ? result.remainingRounds
-              : prev?.remainingRounds,
-          correctGuesses: result.correctGuesses ?? prev?.correctGuesses,
-          incorrectGuesses: result.incorrectGuesses ?? prev?.incorrectGuesses,
-          accuracy: result.accuracy ?? prev?.accuracy,
-          gameOver: result.gameOver ?? prev?.gameOver,
-          currentRound: result.gameOver
-              ? result.currentRound
-              : prev?.currentRound,
-          previousGuesses: result.previousGuesses || prev?.previousGuesses || [],
-      }));
-      setNextRound(result.gameOver ? null : result);
+      applyServerGameState(result);
 
       if (result.gameOver) {
-        setFeedbackLocked(false);
-        setIsSubmitting(false);
-        submissionInFlightRef.current = false;
+        clearActiveGame();
         console.log("Game Over");
         return;
       }
-
-      setFeedbackTimeLeft(5);
-      setFeedbackLocked(true);
-      setIsSubmitting(false);
-      submissionInFlightRef.current = false;
     }
     catch (err) {
+      if (err.response?.status === 404 || err.response?.status === 410) {
+        handleExpiredGame();
+        return;
+      }
+
+      if (err.response?.status === 409 && err.response?.data?.gameStatus) {
+        applyServerGameState(err.response.data);
+        return;
+      }
+
       console.error(err);
       submissionInFlightRef.current = false;
       setIsSubmitting(false);
       setInteractionLocked(false);
     }
-  }, [feedbackLocked, game, roundFinished]);
+  }, [applyServerGameState, clearActiveGame, feedbackLocked, game, handleExpiredGame, roundFinished]);
 
   useEffect(() => {
-    if (!game || interactionLocked || roundFinished || gameOver) return;
+    if (!game || interactionLocked || roundFinished || gameOver || game.gameStatus !== "active") return;
 
     const timerId = setInterval(() => {
       setTimeLeft((current) => Math.max(current - 1, 0));
@@ -235,23 +251,18 @@ export default function GamePage() {
     }
 
     clearFeedbackTimer();
-    const timeoutId = window.setTimeout(() => {
-      setFeedbackTimeLeft(5);
+    feedbackTimerRef.current = window.setInterval(() => {
+      setFeedbackTimeLeft((current) => {
+        if (current <= 1) {
+          clearFeedbackTimer();
+          return 0;
+        }
 
-      feedbackTimerRef.current = window.setInterval(() => {
-        setFeedbackTimeLeft((current) => {
-          if (current <= 1) {
-            clearFeedbackTimer();
-            return 0;
-          }
-
-          return current - 1;
-        });
-      }, 1000);
-    }, 0);
+        return current - 1;
+      });
+    }, 1000);
 
     return () => {
-      window.clearTimeout(timeoutId);
       clearFeedbackTimer();
     };
   }, [clearFeedbackTimer, feedbackLocked]);
@@ -270,19 +281,15 @@ export default function GamePage() {
         return;
       }
 
-      if (nextRound) {
-        applyNextRound(nextRound);
-        return;
+      if (game?.gameId) {
+        restoreActiveGame(game.gameId);
       }
-
-      setFeedbackLocked(false);
-      setInteractionLocked(false);
     }, 0);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [applyNextRound, clearFeedbackTimer, feedbackLocked, feedbackTimeLeft, gameOver, nextRound]);
+  }, [clearFeedbackTimer, feedbackLocked, feedbackTimeLeft, game?.gameId, gameOver, restoreActiveGame]);
 
   const handleSubmitGuess = () => {
     if (!selectedCountry) {
@@ -294,10 +301,9 @@ export default function GamePage() {
   };
 
   const handleNextStation = () => {
-      if (feedbackLocked) return;
-      if (!nextRound) return;
+      if (!game?.gameId || feedbackLocked) return;
 
-      applyNextRound(nextRound);
+      restoreActiveGame(game.gameId);
   };
 
   const handleSkip = () => {
@@ -308,6 +314,7 @@ export default function GamePage() {
       if (!game?.gameId) return;
       if (feedbackLocked) return;
 
+      clearActiveGame();
       navigate(`/results?gameId=${encodeURIComponent(game.gameId)}`);
   };
 
@@ -321,6 +328,11 @@ export default function GamePage() {
   return (
     <>
       <Background />
+      {pageMessage && (
+        <div className={styles.pageMessage}>
+          {pageMessage}
+        </div>
+      )}
 
       <Drawer
         open={hintsOpen}

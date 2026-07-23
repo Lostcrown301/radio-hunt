@@ -16,6 +16,7 @@ export default function EndMenu({
     incorrectGuesses = 0,
     accuracy = 0,
     maxRounds = 10,
+    userStats,
     previousGuesses,
     previousGuessesLoading,
     previousGuessesError
@@ -29,6 +30,16 @@ export default function EndMenu({
         { label: "Best Streak", value: bestStreak },
         { label: "Final Streak", value: streak },
     ];
+    const lifetimeStats = userStats
+        ? [
+            { label: "Games Played", value: userStats.gamesPlayed },
+            { label: "Best Score", value: userStats.highestScore?.toLocaleString?.() ?? userStats.highestScore },
+            { label: "Total Score", value: userStats.totalScore?.toLocaleString?.() ?? userStats.totalScore },
+            { label: "Average Score", value: userStats.averageScore?.toLocaleString?.() ?? userStats.averageScore },
+            { label: "Highest Streak", value: userStats.highestStreak },
+            { label: "Current Streak", value: userStats.currentStreak },
+        ]
+        : [];
 
     return (
         <>
@@ -49,6 +60,24 @@ export default function EndMenu({
                     </div>
                 )}
             </GlassCard>
+
+            {showStats && userStats && (
+                <GlassCard className={styles.card}>
+                    <div className={styles.heading}>
+                        <LuAward size={15} color="var(--c-green)" />
+                        <span className={styles.headingText}>Lifetime Stats</span>
+                    </div>
+
+                    <div className={styles.statsGrid}>
+                        {lifetimeStats.map((stat) => (
+                            <div key={stat.label} className={styles.statItem}>
+                                <span className={styles.label}>{stat.label}</span>
+                                <span className={styles.value}>{stat.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </GlassCard>
+            )}
 
             <ResultsPreviousGuesses
                 previousGuesses={previousGuesses}

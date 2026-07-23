@@ -123,6 +123,10 @@ export const register = withErrorHandling(async (req, res) => {
 
     const result = await registerUser(req.body);
 
+    if (result.refreshToken) {
+        setRefreshTokenCookie(res, result);
+    }
+
     res.status(201).json(result);
 });
 
@@ -144,6 +148,7 @@ export const verifyEmail = withErrorHandling(async (req, res) => {
 
     const result = await verifyEmailOtp(req.body.userId, req.body.otp);
 
+    setRefreshTokenCookie(res, result);
     res.json(result);
 });
 

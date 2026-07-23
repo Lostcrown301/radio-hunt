@@ -1,5 +1,6 @@
 import {
     GameServiceError,
+    getActiveGame,
     getCompletedGameResults,
     startGameSession,
     submitGuess,
@@ -30,10 +31,24 @@ function withErrorHandling(handler, fallbackResponse) {
 }
 
 export const startGame = withErrorHandling(async (req, res) => {
-    const game = await startGameSession();
+    const game = await startGameSession(req.user.id);
 
     res.json(game);
 }, { error: "Failed to start game" });
+
+export const restoreGame = withErrorHandling(async (req, res) => {
+    const { gameId } = req.params;
+
+    if (!gameId) {
+        return res.status(400).json({
+            message: "gameId is required"
+        });
+    }
+
+    const game = await getActiveGame(gameId, req.user.id);
+
+    res.json(game);
+}, { message: "Failed to restore game" });
 
 export const checkGuess = withErrorHandling(async (req, res) => {
     const { gameId, country } = req.body;
@@ -44,7 +59,7 @@ export const checkGuess = withErrorHandling(async (req, res) => {
         });
     }
 
-    const result = await submitGuess(gameId, country);
+    const result = await submitGuess(gameId, country, req.user.id);
 
     res.json(result);
 }, { message: "Failed to check guess" });
@@ -58,7 +73,7 @@ export const getGameResults = withErrorHandling(async (req, res) => {
         });
     }
 
-    const results = await getCompletedGameResults(gameId);
+    const results = await getCompletedGameResults(gameId, req.user.id);
 
     res.json(results);
 }, { message: "Failed to fetch game results" });
